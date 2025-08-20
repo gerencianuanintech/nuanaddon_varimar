@@ -28,7 +28,7 @@ namespace nuanaddon_varimar.Form
             this.EditText2 = ((SAPbouiCOM.EditText)(this.GetItem("edtFecha").Specific));
             this.Button2 = ((SAPbouiCOM.Button)(this.GetItem("1").Specific));
             this.Button3 = ((SAPbouiCOM.Button)(this.GetItem("2").Specific));
-            this.Matrix1 = ((SAPbouiCOM.Matrix)(this.GetItem("Item_11").Specific));
+            this.Matrix1 = ((SAPbouiCOM.Matrix)(this.GetItem("mtxDet").Specific));
             this.OnCustomInitialize();
 
         }
