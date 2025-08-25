@@ -26,10 +26,10 @@ namespace nuanaddon_varimar
 
             oMenus = oMenuItem.SubMenus;
 
-            try
-            {
+            try {
                 //  If the manu already exists this code will fail
-                oMenus.AddEx(oCreationPackage);
+                if (!oMenus.Exists("nuanaddon_varimar"))
+                    oMenus.AddEx(oCreationPackage);
             }
             catch (Exception e)
             {
@@ -44,9 +44,11 @@ namespace nuanaddon_varimar
 
                 // Create s sub menu
                 oCreationPackage.Type = SAPbouiCOM.BoMenuType.mt_STRING;
-                oCreationPackage.UniqueID = "nuanaddon_varimar.Form1";
-                oCreationPackage.String = "Form1";
-                oMenus.AddEx(oCreationPackage);
+                oCreationPackage.UniqueID = "nuanaddon_varimar.Form.FrmDocumento";
+                oCreationPackage.String = "Almacenamiento";
+
+                if (!oMenus.Exists("nuanaddon_varimar.Form.FrmDocumento"))
+                    oMenus.AddEx(oCreationPackage);
             }
             catch (Exception er)
             { //  Menu already exists
@@ -60,9 +62,9 @@ namespace nuanaddon_varimar
 
             try
             {
-                if (pVal.BeforeAction && pVal.MenuUID == "nuanaddon_varimar.Form1")
+                if (pVal.BeforeAction && pVal.MenuUID == "nuanaddon_varimar.Form.FrmDocumento")
                 {
-                    Form1 activeForm = new Form1();
+                    Form.FrmDocumento activeForm = new Form.FrmDocumento();
                     activeForm.Show();
                 }
             }

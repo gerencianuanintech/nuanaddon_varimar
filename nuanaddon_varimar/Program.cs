@@ -1,30 +1,36 @@
-﻿using SAPbouiCOM.Framework;
+﻿using OfficeOpenXml;
+using SAPbouiCOM.Framework;
 using System;
 using System.Collections.Generic;
 
-namespace nuanaddon_varimar
-{
-    class Program
-    {
+namespace nuanaddon_varimar {
+    class Program {
+        //Declaración de variables
+        public static SAPbouiCOM.Application SBOApplication;
+        public static SAPbobsCOM.Company SBOCompany;
+
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
         [STAThread]
-        static void Main(string[] args)
-        {
-            try
-            {
+        static void Main(string[] args) {
+            try {
+                ExcelPackage.License.SetNonCommercialOrganization("Nuanintech");
+
                 Application oApp = null;
                 if (args.Length < 1)
-                {
                     oApp = new Application();
-                }
-                else
-                {
+                else {
                     //If you want to use an add-on identifier for the development license, you can specify an add-on identifier string as the second parameter.
                     //oApp = new Application(args[0], "XXXXX");
                     oApp = new Application(args[0]);
                 }
+
+                //Inicialización de variables
+                SBOApplication = Application.SBO_Application;
+                SBOCompany = (SAPbobsCOM.Company)SBOApplication.Company.GetDICompany();
+                SBOCompany.GetContextCookie();
+
                 Menu MyMenu = new Menu();
                 MyMenu.AddMenuItems();
                 oApp.RegisterMenuEventHandler(MyMenu.SBO_Application_MenuEvent);
