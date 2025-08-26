@@ -65,6 +65,7 @@ namespace nuanaddon_varimar.Form
             this.btnLoad = ((SAPbouiCOM.Button)(this.GetItem("btnLoad").Specific));
             this.btnLoad.PressedAfter += new SAPbouiCOM._IButtonEvents_PressedAfterEventHandler(this.btnLoad_PressedAfter);
             this.btnOk = ((SAPbouiCOM.Button)(this.GetItem("1").Specific));
+            this.btnOk.PressedAfter += new SAPbouiCOM._IButtonEvents_PressedAfterEventHandler(this.btnOk_PressedAfter);
             this.btnCancel = ((SAPbouiCOM.Button)(this.GetItem("2").Specific));
             this.btnTransfer = ((SAPbouiCOM.Button)(this.GetItem("btnTrf").Specific));
             this.btnTransfer.PressedAfter += new SAPbouiCOM._IButtonEvents_PressedAfterEventHandler(this.btnTransfer_PressedAfter);
@@ -78,9 +79,17 @@ namespace nuanaddon_varimar.Form
         /// Initialize form event. Called by framework before form creation.
         /// </summary>
         public override void OnInitializeFormEvents() {
+            try {
+                Program.SBOApplication.MenuEvent += this.MenuEvent;
+                this.DataLoadAfter += new DataLoadAfterHandler(this.Form_DataLoadAfter);
+            }
+            catch (Exception ex) {
+                Program.SBOApplication.StatusBar.SetText($"Form.FrmDocumento.cs -> OnInitializeFormEvents: {ex.Message}", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error);
+            }
         }
 
         private void OnCustomInitialize() {
+            this.edtDocEntry.Item.Visible = false;
 
             InitializeComboWarehousesOrigin();
             InitializeComboWarehousesDestination();
@@ -233,6 +242,14 @@ namespace nuanaddon_varimar.Form
         private void btnTransfer_PressedAfter(object sboObject, SAPbouiCOM.SBOItemEventArg pVal) {
             UIAPIRawForm.Freeze(true);
             try {
+                int nroAlmacenamiento = int.Parse(this.edtNro.Value);
+                Functions.ObtainDocNumTransfer(out int docNum, nroAlmacenamiento);
+                if (!docNum.Equals(0)) {
+                    Program.SBOApplication.StatusBar.SetText($"Transferencia existente con Numero: {docNum}", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success);
+                    Functions.UpdateDocNumTransfer(docNum, nroAlmacenamiento);
+                    return;
+                }
+
                 // --- Crear objeto transferencia ---
                 SAPbobsCOM.StockTransfer oStockTransfer = (SAPbobsCOM.StockTransfer)Program.SBOCompany.GetBusinessObject(SAPbobsCOM.BoObjectTypes.oStockTransfer);
 
@@ -294,22 +311,79 @@ namespace nuanaddon_varimar.Form
                     Program.SBOCompany.GetLastError(out int errCode, out string errMsg);
                     Program.SBOApplication.StatusBar.SetText($"DIAPI Error: {errCode} - {errMsg}", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error);
                 }
-
-                string newKey = Program.SBOCompany.GetNewObjectKey();
-                int docEntry = int.Parse(newKey);
-
-                Program.SBOApplication.StatusBar.SetText($"Transferencia creada. DocEntry: {newKey}", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success);
+                else {
+                    Functions.ObtainDocNumTransfer(out int docNumNuevo, nroAlmacenamiento);
+                    Functions.UpdateDocNumTransfer(docNumNuevo, nroAlmacenamiento);
+                    this.edtTrf.Value = docNumNuevo.ToString();
+                    Program.SBOApplication.StatusBar.SetText($"Transferencia creada. Numero: {docNumNuevo}", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Success);
+                }
             }
             catch (Exception ex) {
                 Program.SBOApplication.StatusBar.SetText($"Form.FrmDocumento.cs -> btnTransfer_PressedAfter: {ex.Message}", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error);
             }
             finally { UIAPIRawForm.Freeze(false); }
         }
+        private void btnOk_PressedAfter(object sboObject, SAPbouiCOM.SBOItemEventArg pVal) {
+            UIAPIRawForm.Freeze(true);
+            try {
+                if (pVal.ActionSuccess) {
+                    if (pVal.FormMode.Equals(3)) {
+                        InitializeData();
+                    }
+                }
+            }
+            catch (Exception ex) {
+                Program.SBOApplication.StatusBar.SetText($"Form.FrmDocumento.cs -> btnOk_PressedAfter: {ex.Message}", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error);
+            }
+            finally { UIAPIRawForm.Freeze(false); }
+        }
+        private void MenuEvent(ref SAPbouiCOM.MenuEvent pVal, out bool BubbleEvent) {
+            BubbleEvent = true;
+            try {
+                if (!pVal.BeforeAction){
+                    switch (pVal.MenuUID) {
+                        case "1281": //Buscar
+                            edtNro.Item.Enabled = true;
+                            this.btnTransfer.Item.Enabled = false;
+                            break;
+                        case "1282": //Crear
+                            InitializeData();
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+            catch (Exception ex) {
+                Program.SBOApplication.StatusBar.SetText($"Form.FrmDocumento.cs -> MenuEvent: {ex.Message}", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error);
+            }
+        }
+        private void Form_DataLoadAfter(ref SAPbouiCOM.BusinessObjectInfo pVal) {
+            try {
+                if (UIAPIRawForm.Mode == SAPbouiCOM.BoFormMode.fm_OK_MODE)
+                    this.btnTransfer.Item.Enabled = true;
+                else
+                    this.btnTransfer.Item.Enabled = false;
+            }
+            catch (Exception ex) {
+                Program.SBOApplication.StatusBar.SetText($"Form.FrmDocumento.cs -> MenuEvent: {ex.Message}", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error);
+            }
+        }
         #endregion
 
         #region Eventos
         private void InitializeData() {
-            this.edtFecha.Value = DateTime.Now.ToString("yyyyMMdd");
+            try {
+                this.edtFecha.Value = DateTime.Now.ToString("yyyyMMdd");
+                Functions.ObtainSequence(out int sequence);
+                this.edtNro.Value = sequence.ToString();
+                this.edtFecha.Item.Click();
+                this.btnTransfer.Item.Enabled = false;
+
+            }
+            catch (Exception ex) {
+                Program.SBOApplication.StatusBar.SetText($"Form.FrmDocumento.cs -> InitializeData: {ex.Message}", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error);
+            }
         }
         private void InitializeComboWarehousesOrigin() {
             try {
@@ -406,6 +480,6 @@ namespace nuanaddon_varimar.Form
             public IntPtr Handle { get { return _handle; } }
         }
 
-        
+       
     }
 }

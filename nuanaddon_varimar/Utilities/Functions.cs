@@ -95,5 +95,61 @@ namespace nuanaddon_varimar.Utilities {
                 Program.SBOApplication.StatusBar.SetText($"Utilities.Functions.cs -> ObtainBinAbsEntry: {ex.Message}", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error);
             }
         }
+        public static void ObtainSequence(out int sequence) {
+            sequence = 0;
+            try {
+                string varSQL = $"CALL SBO_SP_IZ_GET_SEQUENCE()";
+                Recordset oRs = (Recordset)Program.SBOCompany.GetBusinessObject(BoObjectTypes.BoRecordset);
+                oRs.DoQuery(varSQL);
+
+                while (!oRs.EoF) {
+                    sequence = Convert.ToInt32(oRs.Fields.Item("Code").Value);
+                    oRs.MoveNext();
+                }
+
+                // Libera el objeto Recordset
+                System.Runtime.InteropServices.Marshal.ReleaseComObject(oRs);
+                oRs = null;
+            }
+            catch (Exception ex) {
+                Program.SBOApplication.StatusBar.SetText($"Utilities.Functions.cs -> ObtainSequence: {ex.Message}", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error);
+            }
+        }
+        public static void ObtainDocNumTransfer(out int docNum, int nroAlmacenamiento) {
+            docNum = 0;
+            try {
+                string varSQL = $"CALL SBO_SP_IZ_GET_DOCNUMTRANSFER({nroAlmacenamiento})";
+                Recordset oRs = (Recordset)Program.SBOCompany.GetBusinessObject(BoObjectTypes.BoRecordset);
+                oRs.DoQuery(varSQL);
+
+                while (!oRs.EoF) {
+                    docNum = Convert.ToInt32(oRs.Fields.Item("DocNum").Value);
+                    oRs.MoveNext();
+                }
+
+                // Libera el objeto Recordset
+                System.Runtime.InteropServices.Marshal.ReleaseComObject(oRs);
+                oRs = null;
+            }
+            catch (Exception ex) {
+                Program.SBOApplication.StatusBar.SetText($"Utilities.Functions.cs -> ObtainDocNum: {ex.Message}", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error);
+            }
+        }
+        public static void UpdateDocNumTransfer(int docNum, int nroAlmacenamiento) {
+            try {
+                string varSQL = $"Update \"@IZ_DTMA_CABALM\" set \"U_IZ_NRO_TRANSFERENCIA\" = {docNum} where \"Code\" = '{nroAlmacenamiento}'";
+                Recordset oRs = (Recordset)Program.SBOCompany.GetBusinessObject(BoObjectTypes.BoRecordset);
+
+                // Ejecuta la consulta
+                oRs.DoQuery(varSQL);
+
+                // Libera el objeto Recordset
+                System.Runtime.InteropServices.Marshal.ReleaseComObject(oRs);
+                oRs = null;
+            }
+            catch (Exception ex) {
+                Program.SBOApplication.StatusBar.SetText($"Utilities.Functions.cs -> UpdateDocNumTransfer: {ex.Message}", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error);
+            }
+        }
     }
 }
