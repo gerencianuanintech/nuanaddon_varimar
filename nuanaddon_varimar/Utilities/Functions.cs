@@ -15,6 +15,7 @@ namespace nuanaddon_varimar.Utilities {
                 WarehousesDTO warehousesDTO;
 
                 string varSQL = $"EXEC SBO_SP_IZ_GET_WAREHOUSES";
+                //string varSQL = $"CALL SBO_SP_IZ_GET_WAREHOUSES()";
                 Recordset oRs = (Recordset)Program.SBOCompany.GetBusinessObject(BoObjectTypes.BoRecordset);
                 oRs.DoQuery(varSQL);
 
@@ -38,6 +39,7 @@ namespace nuanaddon_varimar.Utilities {
             itemCode = "";
             try {
                 string varSQL = $"EXEC SBO_SP_IZ_GET_ITEMCODE '{itemName}' ";
+                //string varSQL = $"CALL SBO_SP_IZ_GET_ITEMCODE ('{itemName}') ";
                 Recordset oRs = (Recordset)Program.SBOCompany.GetBusinessObject(BoObjectTypes.BoRecordset);
                 oRs.DoQuery(varSQL);
 
@@ -56,9 +58,9 @@ namespace nuanaddon_varimar.Utilities {
         }
         public static void ObtainQuantityDistNumber(out decimal quantity, string itemCode, string whsCode, string DistNumber) {
             quantity = 0;
-            try
-            {
+            try {
                 string varSQL = $"EXEC SBO_SP_IZ_GET_QUANTITYDISTNUMBER '{itemCode}','{whsCode}','{DistNumber}' ";
+                //string varSQL = $"CALL SBO_SP_IZ_GET_QUANTITYDISTNUMBER ('{itemCode}','{whsCode}','{DistNumber}') ";
                 Recordset oRs = (Recordset)Program.SBOCompany.GetBusinessObject(BoObjectTypes.BoRecordset);
                 oRs.DoQuery(varSQL);
 
@@ -79,6 +81,7 @@ namespace nuanaddon_varimar.Utilities {
             binAbsEntry = 0;
             try {
                 string varSQL = $"EXEC SBO_SP_IZ_GET_BINABSENTRY '{whsCode}','{binCode}' ";
+                //string varSQL = $"CALL SBO_SP_IZ_GET_BINABSENTRY ('{whsCode}','{binCode}') ";
                 Recordset oRs = (Recordset)Program.SBOCompany.GetBusinessObject(BoObjectTypes.BoRecordset);
                 oRs.DoQuery(varSQL);
 
@@ -99,6 +102,7 @@ namespace nuanaddon_varimar.Utilities {
             sequence = 0;
             try {
                 string varSQL = $"EXEC SBO_SP_IZ_GET_SEQUENCE";
+                //string varSQL = $"CALL SBO_SP_IZ_GET_SEQUENCE()";
                 Recordset oRs = (Recordset)Program.SBOCompany.GetBusinessObject(BoObjectTypes.BoRecordset);
                 oRs.DoQuery(varSQL);
 
@@ -119,6 +123,7 @@ namespace nuanaddon_varimar.Utilities {
             docNum = 0;
             try {
                 string varSQL = $"EXEC SBO_SP_IZ_GET_DOCNUMTRANSFER {nroAlmacenamiento} ";
+                //string varSQL = $"CALL SBO_SP_IZ_GET_DOCNUMTRANSFER ({nroAlmacenamiento}) ";
                 Recordset oRs = (Recordset)Program.SBOCompany.GetBusinessObject(BoObjectTypes.BoRecordset);
                 oRs.DoQuery(varSQL);
 

@@ -128,6 +128,7 @@ namespace nuanaddon_varimar.Form
                 Program.SBOApplication.StatusBar.SetText($"Form.FrmDocumento.cs -> btnFind_PressedAfter: {ex.Message}", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error);
             }
         }
+        //Modificar aqui
         private void btnLoad_PressedAfter(object sboObject, SAPbouiCOM.SBOItemEventArg pVal) {
             UIAPIRawForm.Freeze(true);
             try {
@@ -152,6 +153,18 @@ namespace nuanaddon_varimar.Form
                     decimal can1 = 0;
                     decimal can2 = 0;
                     decimal can3 = 0;
+                    decimal can4 = 0;
+                    decimal can5 = 0;
+                    decimal can6 = 0;
+                    decimal can7 = 0;
+                    decimal can8 = 0;
+                    decimal can9 = 0;
+                    decimal can10 = 0;
+                    decimal can11 = 0;
+                    decimal can12 = 0;
+                    decimal can13 = 0;
+                    decimal can14 = 0;
+                    decimal can15 = 0;
 
                     for (int row = 6; row <= rows - 1; row++) {
                         if (!string.IsNullOrEmpty(worksheet.Cells[row, 2].Text)) {
@@ -204,9 +217,91 @@ namespace nuanaddon_varimar.Form
                             if (invCAN3) ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_OBS").Cells.Item(i).Specific).Value = "Valor en Cantidad 2 no valido";
                             else can3 = decimal.TryParse(valCAN3, out var tmpCAN3) ? tmpCAN3 : 0;
 
+                            // FRRC se aumento 12 cantidades y ubicaciones
+                            ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_UBI4").Cells.Item(i).Specific).Value = worksheet.Cells[row, 12].Text;
+                            var valCAN4 = ParseNumericCell(worksheet.Cells[row, 13], out bool invCAN4);
+                            ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_CAN4").Cells.Item(i).Specific).Value = valCAN4;
+                            if (invCAN4) ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_OBS").Cells.Item(i).Specific).Value = "Valor en Cantidad 4 no valido";
+                            else can4 = decimal.TryParse(valCAN4, out var tmpCAN4) ? tmpCAN4 : 0;
+
+                            ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_UBI5").Cells.Item(i).Specific).Value = worksheet.Cells[row, 14].Text;
+                            var valCAN5 = ParseNumericCell(worksheet.Cells[row, 15], out bool invCAN5);
+                            ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_CAN5").Cells.Item(i).Specific).Value = valCAN5;
+                            if (invCAN5) ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_OBS").Cells.Item(i).Specific).Value = "Valor en Cantidad 5 no valido";
+                            else can5 = decimal.TryParse(valCAN5, out var tmpCAN5) ? tmpCAN5 : 0;
+
+                            ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_UBI6").Cells.Item(i).Specific).Value = worksheet.Cells[row, 16].Text;
+                            var valCAN6 = ParseNumericCell(worksheet.Cells[row, 17], out bool invCAN6);
+                            ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_CAN6").Cells.Item(i).Specific).Value = valCAN6;
+                            if (invCAN6) ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_OBS").Cells.Item(i).Specific).Value = "Valor en Cantidad 6 no valido";
+                            else can6 = decimal.TryParse(valCAN6, out var tmpCAN6) ? tmpCAN6 : 0;
+
+                            ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_UBI7").Cells.Item(i).Specific).Value = worksheet.Cells[row, 18].Text;
+                            var valCAN7 = ParseNumericCell(worksheet.Cells[row, 19], out bool invCAN7);
+                            ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_CAN7").Cells.Item(i).Specific).Value = valCAN7;
+                            if (invCAN7) ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_OBS").Cells.Item(i).Specific).Value = "Valor en Cantidad 7 no valido";
+                            else can7 = decimal.TryParse(valCAN7, out var tmpCAN7) ? tmpCAN7 : 0;
+
+                            ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_UBI8").Cells.Item(i).Specific).Value = worksheet.Cells[row, 20].Text;
+                            var valCAN8 = ParseNumericCell(worksheet.Cells[row, 21], out bool invCAN8);
+                            ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_CAN8").Cells.Item(i).Specific).Value = valCAN8;
+                            if (invCAN8) ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_OBS").Cells.Item(i).Specific).Value = "Valor en Cantidad 8 no valido";
+                            else can8 = decimal.TryParse(valCAN8, out var tmpCAN8) ? tmpCAN8 : 0;
+
+
+                            ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_UBI9").Cells.Item(i).Specific).Value = worksheet.Cells[row, 22].Text;
+                            var valCAN9 = ParseNumericCell(worksheet.Cells[row, 23], out bool invCAN9);
+                            ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_CAN9").Cells.Item(i).Specific).Value = valCAN9;
+                            if (invCAN9) ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_OBS").Cells.Item(i).Specific).Value = "Valor en Cantidad 9 no valido";
+                            else can9 = decimal.TryParse(valCAN9, out var tmpCAN9) ? tmpCAN9 : 0;
+
+
+                            ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_UB10").Cells.Item(i).Specific).Value = worksheet.Cells[row, 24].Text;
+                            var valCAN10 = ParseNumericCell(worksheet.Cells[row, 25], out bool invCAN10);
+                            ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_CA10").Cells.Item(i).Specific).Value = valCAN10;
+                            if (invCAN10) ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_OBS").Cells.Item(i).Specific).Value = "Valor en Cantidad 10 no valido";
+                            else can10 = decimal.TryParse(valCAN10, out var tmpCAN10) ? tmpCAN10 : 0;
+
+
+                            ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_UB11").Cells.Item(i).Specific).Value = worksheet.Cells[row, 26].Text;
+                            var valCAN11 = ParseNumericCell(worksheet.Cells[row, 27], out bool invCAN11);
+                            ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_CA11").Cells.Item(i).Specific).Value = valCAN11;
+                            if (invCAN11) ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_OBS").Cells.Item(i).Specific).Value = "Valor en Cantidad 11 no valido";
+                            else can11 = decimal.TryParse(valCAN11, out var tmpCAN11) ? tmpCAN11 : 0;
+
+
+                            ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_UB12").Cells.Item(i).Specific).Value = worksheet.Cells[row, 28].Text;
+                            var valCAN12 = ParseNumericCell(worksheet.Cells[row, 29], out bool invCAN12);
+                            ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_CA12").Cells.Item(i).Specific).Value = valCAN12;
+                            if (invCAN12) ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_OBS").Cells.Item(i).Specific).Value = "Valor en Cantidad 12 no valido";
+                            else can12 = decimal.TryParse(valCAN12, out var tmpCAN12) ? tmpCAN12 : 0;
+
+
+                            ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_UB13").Cells.Item(i).Specific).Value = worksheet.Cells[row, 30].Text;
+                            var valCAN13 = ParseNumericCell(worksheet.Cells[row, 31], out bool invCAN13);
+                            ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_CA13").Cells.Item(i).Specific).Value = valCAN13;
+                            if (invCAN13) ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_OBS").Cells.Item(i).Specific).Value = "Valor en Cantidad 13 no valido";
+                            else can13 = decimal.TryParse(valCAN13, out var tmpCAN13) ? tmpCAN13 : 0;
+
+
+
+                            ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_UB14").Cells.Item(i).Specific).Value = worksheet.Cells[row, 32].Text;
+                            var valCAN14 = ParseNumericCell(worksheet.Cells[row, 33], out bool invCAN14);
+                            ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_CA14").Cells.Item(i).Specific).Value = valCAN14;
+                            if (invCAN14) ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_OBS").Cells.Item(i).Specific).Value = "Valor en Cantidad 14 no valido";
+                            else can14 = decimal.TryParse(valCAN14, out var tmpCAN14) ? tmpCAN14 : 0;
+
+
+
+                            ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_UB15").Cells.Item(i).Specific).Value = worksheet.Cells[row, 34].Text;
+                            var valCAN15 = ParseNumericCell(worksheet.Cells[row, 35], out bool invCAN15);
+                            ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_CA15").Cells.Item(i).Specific).Value = valCAN15;
+                            if (invCAN15) ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_OBS").Cells.Item(i).Specific).Value = "Valor en Cantidad 15 no valido";
+                            else can15 = decimal.TryParse(valCAN15, out var tmpCAN15) ? tmpCAN15 : 0;
+
                             // Validación suma
-                            if (cant != (can1 + can2 + can3)) {
-                                var obsNueva = $"Suma Cantidad 1 + Cantidad 2 + Cantidad 3 ({can1 + can2 + can3}) ≠ Cant. Total ({cant})";
+                            if (cant != (can1 + can2 + can3 + can4 + can5 + can6 + can7 + can8 + can9 + can10 + can11 + can12 + can13 + can14 + can15)) {
+                                var obsNueva = $"Suma de las cantidades ({can1 + can2 + can3 + can4 + can5 +can6 + can7 + can8 + can9 + can10 + can11 + can12 + can13 + can14 + can15}) ≠ Cant. Total ({cant})";
                                 ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_OBS").Cells.Item(i).Specific).Value = obsNueva;
                             }
 
@@ -278,11 +373,37 @@ namespace nuanaddon_varimar.Form
                         double cantidad1 = ParseDouble(((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_CAN1").Cells.Item(i).Specific).Value);
                         double cantidad2 = ParseDouble(((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_CAN2").Cells.Item(i).Specific).Value);
                         double cantidad3 = ParseDouble(((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_CAN3").Cells.Item(i).Specific).Value);
+                        //frrc 02-09-2025 aumento de cantidades hasta la 15
+                        double cantidad4 = ParseDouble(((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_CAN4").Cells.Item(i).Specific).Value);
+                        double cantidad5 = ParseDouble(((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_CAN5").Cells.Item(i).Specific).Value);
+                        double cantidad6 = ParseDouble(((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_CAN6").Cells.Item(i).Specific).Value);
+                        double cantidad7 = ParseDouble(((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_CAN7").Cells.Item(i).Specific).Value);
+                        double cantidad8 = ParseDouble(((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_CAN8").Cells.Item(i).Specific).Value);
+                        double cantidad9 = ParseDouble(((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_CAN9").Cells.Item(i).Specific).Value);
+                        double cantidad10 = ParseDouble(((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_CA10").Cells.Item(i).Specific).Value);
+                        double cantidad11 = ParseDouble(((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_CA11").Cells.Item(i).Specific).Value);
+                        double cantidad12 = ParseDouble(((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_CA12").Cells.Item(i).Specific).Value);
+                        double cantidad13 = ParseDouble(((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_CA13").Cells.Item(i).Specific).Value);
+                        double cantidad14 = ParseDouble(((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_CA14").Cells.Item(i).Specific).Value);
+                        double cantidad15 = ParseDouble(((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_CA15").Cells.Item(i).Specific).Value);
 
                         string distNumber = ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_LOT").Cells.Item(i).Specific).Value?.Trim();
                         string ubicacion1 = ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_UBI1").Cells.Item(i).Specific).Value?.Trim();
                         string ubicacion2 = ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_UBI2").Cells.Item(i).Specific).Value?.Trim();
                         string ubicacion3 = ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_UBI3").Cells.Item(i).Specific).Value?.Trim();
+                        //frrc 02-09-2025 se aumento ubicaciones hasta la 15
+                        string ubicacion4 = ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_UBI4").Cells.Item(i).Specific).Value?.Trim();
+                        string ubicacion5 = ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_UBI5").Cells.Item(i).Specific).Value?.Trim();
+                        string ubicacion6 = ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_UBI6").Cells.Item(i).Specific).Value?.Trim();
+                        string ubicacion7 = ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_UBI7").Cells.Item(i).Specific).Value?.Trim();
+                        string ubicacion8 = ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_UBI8").Cells.Item(i).Specific).Value?.Trim();
+                        string ubicacion9 = ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_UBI9").Cells.Item(i).Specific).Value?.Trim();
+                        string ubicacion10 = ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_UB10").Cells.Item(i).Specific).Value?.Trim();
+                        string ubicacion11 = ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_UB11").Cells.Item(i).Specific).Value?.Trim();
+                        string ubicacion12 = ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_UB12").Cells.Item(i).Specific).Value?.Trim();
+                        string ubicacion13 = ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_UB13").Cells.Item(i).Specific).Value?.Trim();
+                        string ubicacion14 = ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_UB14").Cells.Item(i).Specific).Value?.Trim();
+                        string ubicacion15 = ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_UB15").Cells.Item(i).Specific).Value?.Trim();
 
                         oStockTransfer.Lines.ItemCode = ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_COD").Cells.Item(i).Specific).Value;
                         oStockTransfer.Lines.FromWarehouseCode = cmbOri.Selected.Value;
@@ -300,7 +421,19 @@ namespace nuanaddon_varimar.Form
                         AddBinToAllocationIfAny(oStockTransfer, cmbDes.Selected.Value, ubicacion1, cantidad1, loteBaseIndex);
                         AddBinToAllocationIfAny(oStockTransfer, cmbDes.Selected.Value, ubicacion2, cantidad2, loteBaseIndex);
                         AddBinToAllocationIfAny(oStockTransfer, cmbDes.Selected.Value, ubicacion3, cantidad3, loteBaseIndex);
-
+                        // FRRC 02-09-2025 aumento ubicaciones destino 
+                        AddBinToAllocationIfAny(oStockTransfer, cmbDes.Selected.Value, ubicacion4, cantidad4, loteBaseIndex);
+                        AddBinToAllocationIfAny(oStockTransfer, cmbDes.Selected.Value, ubicacion5, cantidad5, loteBaseIndex);
+                        AddBinToAllocationIfAny(oStockTransfer, cmbDes.Selected.Value, ubicacion6, cantidad6, loteBaseIndex);
+                        AddBinToAllocationIfAny(oStockTransfer, cmbDes.Selected.Value, ubicacion7, cantidad7, loteBaseIndex);
+                        AddBinToAllocationIfAny(oStockTransfer, cmbDes.Selected.Value, ubicacion8, cantidad8, loteBaseIndex);
+                        AddBinToAllocationIfAny(oStockTransfer, cmbDes.Selected.Value, ubicacion9, cantidad9, loteBaseIndex);
+                        AddBinToAllocationIfAny(oStockTransfer, cmbDes.Selected.Value, ubicacion10, cantidad10, loteBaseIndex);
+                        AddBinToAllocationIfAny(oStockTransfer, cmbDes.Selected.Value, ubicacion11, cantidad11, loteBaseIndex);
+                        AddBinToAllocationIfAny(oStockTransfer, cmbDes.Selected.Value, ubicacion12, cantidad12, loteBaseIndex);
+                        AddBinToAllocationIfAny(oStockTransfer, cmbDes.Selected.Value, ubicacion13, cantidad13, loteBaseIndex);
+                        AddBinToAllocationIfAny(oStockTransfer, cmbDes.Selected.Value, ubicacion14, cantidad14, loteBaseIndex);
+                        AddBinToAllocationIfAny(oStockTransfer, cmbDes.Selected.Value, ubicacion15, cantidad15, loteBaseIndex);
                         // Cerrar línea
                         oStockTransfer.Lines.Add();
                     }
