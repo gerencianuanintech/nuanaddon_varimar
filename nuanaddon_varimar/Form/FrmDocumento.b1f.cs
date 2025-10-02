@@ -37,6 +37,26 @@ namespace nuanaddon_varimar.Form
         private SAPbouiCOM.EditText edtTrf;
         private SAPbouiCOM.Button btnTransfer;
         private SAPbouiCOM.EditText edtDocEntry;
+        private SAPbouiCOM.StaticText sttTipoOperacion;
+        private SAPbouiCOM.EditText edtTipoOperacion;
+        private SAPbouiCOM.StaticText sttMotivoTraslado;
+        private SAPbouiCOM.EditText edtMotivoTraslado;
+        private SAPbouiCOM.StaticText sttBPPSerie;
+        private SAPbouiCOM.EditText edtBPPSerie;
+        private SAPbouiCOM.StaticText sttBPPDocAnulado;
+        private SAPbouiCOM.EditText edtBPPDocAnulado;
+        private SAPbouiCOM.StaticText sttBPPNumero;
+        private SAPbouiCOM.EditText edtBPPNumero;
+        private SAPbouiCOM.StaticText sttTipoDocumento;
+        private SAPbouiCOM.EditText edtTipoDocumento;
+        private SAPbouiCOM.StaticText sttSerieDocumento;
+        private SAPbouiCOM.EditText edtSerieDocumento;
+        private SAPbouiCOM.StaticText sttCorrelativoDocumento;
+        private SAPbouiCOM.EditText edtCorrelativoDocumento;
+        private SAPbouiCOM.StaticText sttNumeroOriginal;
+        private SAPbouiCOM.EditText edtNumeroOriginal;
+        private SAPbouiCOM.StaticText sttNumeroImportacion;
+        private SAPbouiCOM.EditText edtNumeroImportacion;
         #endregion
 
         #region Constructores
@@ -71,6 +91,26 @@ namespace nuanaddon_varimar.Form
             this.btnTransfer.PressedAfter += new SAPbouiCOM._IButtonEvents_PressedAfterEventHandler(this.btnTransfer_PressedAfter);
             this.mtxDetalle = ((SAPbouiCOM.Matrix)(this.GetItem("mtxDet").Specific));
             this.edtDocEntry = ((SAPbouiCOM.EditText)(this.GetItem("DocEntry").Specific));
+            this.sttTipoOperacion = ((SAPbouiCOM.StaticText)(this.GetItem("sttTdo").Specific));
+            this.edtTipoOperacion = ((SAPbouiCOM.EditText)(this.GetItem("edtTdo").Specific));
+            this.sttMotivoTraslado = ((SAPbouiCOM.StaticText)(this.GetItem("sttMdt").Specific));
+            this.edtMotivoTraslado = ((SAPbouiCOM.EditText)(this.GetItem("edtMdt").Specific));
+            this.sttBPPSerie = ((SAPbouiCOM.StaticText)(this.GetItem("sttBse").Specific));
+            this.edtBPPSerie = ((SAPbouiCOM.EditText)(this.GetItem("edtBse").Specific));
+            this.sttBPPDocAnulado = ((SAPbouiCOM.StaticText)(this.GetItem("sttBda").Specific));
+            this.edtBPPDocAnulado = ((SAPbouiCOM.EditText)(this.GetItem("edtBda").Specific));
+            this.sttBPPNumero = ((SAPbouiCOM.StaticText)(this.GetItem("sttBnr").Specific));
+            this.edtBPPNumero = ((SAPbouiCOM.EditText)(this.GetItem("edtBnr").Specific));
+            this.sttTipoDocumento = ((SAPbouiCOM.StaticText)(this.GetItem("sttTdd").Specific));
+            this.edtTipoDocumento = ((SAPbouiCOM.EditText)(this.GetItem("edtTdd").Specific));
+            this.sttSerieDocumento = ((SAPbouiCOM.StaticText)(this.GetItem("sttSdd").Specific));
+            this.edtSerieDocumento = ((SAPbouiCOM.EditText)(this.GetItem("edtSdd").Specific));
+            this.sttCorrelativoDocumento = ((SAPbouiCOM.StaticText)(this.GetItem("sttCdd").Specific));
+            this.edtCorrelativoDocumento = ((SAPbouiCOM.EditText)(this.GetItem("edtCdd").Specific));
+            this.sttNumeroOriginal = ((SAPbouiCOM.StaticText)(this.GetItem("sttVno").Specific));
+            this.edtNumeroOriginal = ((SAPbouiCOM.EditText)(this.GetItem("edtVno").Specific));
+            this.sttNumeroImportacion = ((SAPbouiCOM.StaticText)(this.GetItem("sttNim").Specific));
+            this.edtNumeroImportacion = ((SAPbouiCOM.EditText)(this.GetItem("edtNim").Specific));
             this.OnCustomInitialize();
 
         }
@@ -79,13 +119,7 @@ namespace nuanaddon_varimar.Form
         /// Initialize form event. Called by framework before form creation.
         /// </summary>
         public override void OnInitializeFormEvents() {
-            try {
-                Program.SBOApplication.MenuEvent += this.MenuEvent;
-                this.DataLoadAfter += new DataLoadAfterHandler(this.Form_DataLoadAfter);
-            }
-            catch (Exception ex) {
-                Program.SBOApplication.StatusBar.SetText($"Form.FrmDocumento.cs -> OnInitializeFormEvents: {ex.Message}", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error);
-            }
+
         }
 
         private void OnCustomInitialize() {
@@ -361,6 +395,17 @@ namespace nuanaddon_varimar.Form
                 oStockTransfer.FromWarehouse = cmbOri.Selected.Value;
                 oStockTransfer.ToWarehouse = cmbDes.Selected.Value;
                 oStockTransfer.UserFields.Fields.Item("U_IZ_NRO_ALMACENAMIENTO").Value = int.Parse(edtNro.Value.ToString());
+                //CAMC 01102025 V4 Llenado de campos definidos por el usuario
+                oStockTransfer.UserFields.Fields.Item("U_TIPOPE").Value = this.edtTipoOperacion.Value;
+                oStockTransfer.UserFields.Fields.Item("U_BPP_MDMT").Value = this.edtMotivoTraslado.Value;
+                oStockTransfer.UserFields.Fields.Item("U_BPP_Anulada").Value = this.edtBPPDocAnulado.Value;
+                oStockTransfer.UserFields.Fields.Item("U_BPP_MDTD").Value = this.edtTipoDocumento.Value;
+                oStockTransfer.UserFields.Fields.Item("U_VK_IMPORT").Value = this.edtNumeroImportacion.Value;
+                oStockTransfer.UserFields.Fields.Item("U_BPV_SERI").Value = this.edtBPPSerie.Value;
+                oStockTransfer.UserFields.Fields.Item("U_BPP_MDSD").Value = this.edtSerieDocumento.Value;
+                oStockTransfer.UserFields.Fields.Item("U_BPP_MDCD").Value = this.edtCorrelativoDocumento.Value;
+                oStockTransfer.UserFields.Fields.Item("U_vp_NumOrig").Value = this.edtNumeroOriginal.Value;
+                oStockTransfer.UserFields.Fields.Item("U_BPV_NCON2").Value = this.edtBPPNumero.Value;
 
                 // Número de filas
                 int rowCount = mtxDetalle.RowCount;
@@ -508,6 +553,10 @@ namespace nuanaddon_varimar.Form
         private void InitializeData() {
             try {
                 this.edtFecha.Value = DateTime.Now.ToString("yyyyMMdd");
+                this.edtTipoOperacion.Value = "TRANSFERENCIA ENTRE ALMACENES";
+                this.edtMotivoTraslado.Value = "01";
+                this.edtBPPDocAnulado.Value = "N";
+                this.edtTipoDocumento.Value = "09";
                 Functions.ObtainSequence(out int sequence);
                 this.edtNro.Value = sequence.ToString();
                 this.edtFecha.Item.Click();
@@ -607,6 +656,9 @@ namespace nuanaddon_varimar.Form
 
         [DllImport("user32.dll")]
         private static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
+
+      
+
         private class WindowWrapper : IWin32Window {
             private readonly IntPtr _handle;
             public WindowWrapper(IntPtr handle) { _handle = handle; }
