@@ -57,6 +57,10 @@ namespace nuanaddon_varimar.Form
         private SAPbouiCOM.EditText edtNumeroOriginal;
         private SAPbouiCOM.StaticText sttNumeroImportacion;
         private SAPbouiCOM.EditText edtNumeroImportacion;
+        private SAPbouiCOM.StaticText sttObservacion;
+        private SAPbouiCOM.StaticText sttComentario;
+        private SAPbouiCOM.EditText edtComentario;
+        private SAPbouiCOM.EditText edtObservacion;
         #endregion
 
         #region Constructores
@@ -113,6 +117,11 @@ namespace nuanaddon_varimar.Form
             this.edtNumeroOriginal = ((SAPbouiCOM.EditText)(this.GetItem("edtVno").Specific));
             this.sttNumeroImportacion = ((SAPbouiCOM.StaticText)(this.GetItem("sttNim").Specific));
             this.edtNumeroImportacion = ((SAPbouiCOM.EditText)(this.GetItem("edtNim").Specific));
+            this.sttObservacion = ((SAPbouiCOM.StaticText)(this.GetItem("sttOlm").Specific));
+            this.edtObservacion = ((SAPbouiCOM.EditText)(this.GetItem("edtOli").Specific));
+            this.edtObservacion.LostFocusAfter += new SAPbouiCOM._IEditTextEvents_LostFocusAfterEventHandler(this.edtObservacion_LostFocusAfter);
+            this.sttComentario = ((SAPbouiCOM.StaticText)(this.GetItem("sttCom").Specific));
+            this.edtComentario = ((SAPbouiCOM.EditText)(this.GetItem("edtCom").Specific));
             this.OnCustomInitialize();
 
         }
@@ -403,6 +412,8 @@ namespace nuanaddon_varimar.Form
 
                 oStockTransfer.FromWarehouse = cmbOri.Selected.Value;
                 oStockTransfer.ToWarehouse = cmbDes.Selected.Value;
+                oStockTransfer.JournalMemo = this.edtObservacion.Value;
+                oStockTransfer.Comments = this.edtComentario.Value;
                 oStockTransfer.UserFields.Fields.Item("U_IZ_NRO_ALMACENAMIENTO").Value = int.Parse(edtNro.Value.ToString());
                 //CAMC 01102025 V4 Llenado de campos definidos por el usuario
                 oStockTransfer.UserFields.Fields.Item("U_TIPOPE").Value = this.edtTipoOperacion.Value;
@@ -463,6 +474,7 @@ namespace nuanaddon_varimar.Form
                         oStockTransfer.Lines.FromWarehouseCode = cmbOri.Selected.Value;
                         oStockTransfer.Lines.WarehouseCode = cmbDes.Selected.Value;
                         oStockTransfer.Lines.Quantity = cantidadTotal;
+                        oStockTransfer.Lines.UserFields.Fields.Item("U_vp_Cajas").Value = 0;
 
                         // ----- LOTE -----
                         oStockTransfer.Lines.BatchNumbers.BatchNumber = distNumber;
@@ -583,7 +595,16 @@ namespace nuanaddon_varimar.Form
             catch (Exception ex) {
                 Program.SBOApplication.StatusBar.SetText($"Form.FrmDocumento.cs -> edtBPPSerie_LostFocusAfter: {ex.Message}", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error);
             }
-
+        }
+        private void edtObservacion_LostFocusAfter(object sboObject, SAPbouiCOM.SBOItemEventArg pVal) {
+            try {
+                var obsLibroMayor = this.edtObservacion.Value;
+                if (!string.IsNullOrEmpty(obsLibroMayor))
+                    this.edtComentario.Value = obsLibroMayor;
+            }
+            catch (Exception ex) {
+                Program.SBOApplication.StatusBar.SetText($"Form.FrmDocumento.cs -> edtObservacion_LostFocusAfter: {ex.Message}", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error);
+            }
         }
         #endregion
 
@@ -695,7 +716,7 @@ namespace nuanaddon_varimar.Form
         [DllImport("user32.dll")]
         private static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
 
-      
+        
 
         private class WindowWrapper : IWin32Window {
             private readonly IntPtr _handle;
@@ -703,6 +724,6 @@ namespace nuanaddon_varimar.Form
             public IntPtr Handle { get { return _handle; } }
         }
 
-        
+       
     }
 }
