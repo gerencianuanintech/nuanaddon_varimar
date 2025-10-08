@@ -20,7 +20,7 @@ namespace nuanaddon_varimar
 
             oCreationPackage.Type = SAPbouiCOM.BoMenuType.mt_POPUP;
             oCreationPackage.UniqueID = "nuanaddon_varimar";
-            oCreationPackage.String = "nuanaddon_varimar";
+            oCreationPackage.String = "Addon Hoja Almacenamiento";
             oCreationPackage.Enabled = true;
             oCreationPackage.Position = -1;
 

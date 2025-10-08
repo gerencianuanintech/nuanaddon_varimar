@@ -211,6 +211,7 @@ namespace nuanaddon_varimar.Form
                     decimal can14 = 0;
                     decimal can15 = 0;
                     decimal emb = 0;
+                    decimal pza = 0;
 
                     for (int row = 6; row <= rows - 1; row++) {
                         if (!string.IsNullOrEmpty(worksheet.Cells[row, 2].Text)) {
@@ -255,6 +256,8 @@ namespace nuanaddon_varimar.Form
                             var valCAN15 = ParseNumericCell(worksheet.Cells[row, 34], out bool invCAN15);
                             //06102025 agregamos nueva columna embalaje 
                             var embalaje = ParseNumericCell(worksheet.Cells[row, 35], out bool invEmbalaje);
+                            //07102025 agregamos nueva columna piezas
+                            var piezas = ParseNumericCell(worksheet.Cells[row, 36], out bool invPiezas);
 
                             ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("#").Cells.Item(i).Specific).Value = i.ToString();
                             ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_COD").Cells.Item(i).Specific).Value = itemCode;
@@ -356,13 +359,32 @@ namespace nuanaddon_varimar.Form
 
                             // 06102025 agregamos nueva columna embalaje
                             ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_EMB").Cells.Item(i).Specific).Value = embalaje;
-                            if (invEmbalaje) 
+                            if (invEmbalaje)
                                 ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_OBS").Cells.Item(i).Specific).Value = "Valor en embalaje no valido";
-                            else emb = decimal.TryParse(embalaje, out var embalajeNum) ? embalajeNum : 0;
-                            //validacion embalaje
-                            if (emb <= 0)
-                                ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_OBS").Cells.Item(i).Specific).Value = "El embalaje debe ser mayor que 0";
-                          
+                            else { 
+                                emb = decimal.TryParse(embalaje, out var embalajeNum) ? embalajeNum : 0;
+                                //validacion embalaje
+                                if (emb <= 0)
+                                    ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_OBS").Cells.Item(i).Specific).Value = "El embalaje debe ser mayor que 0";
+                            } 
+                            
+
+                            // 07102025 agregamos nueva columna pieza
+                            ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_PZS").Cells.Item(i).Specific).Value = piezas;
+                            if (invPiezas)
+                                ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_OBS").Cells.Item(i).Specific).Value = "Valor en embalaje no valido";
+                            else {
+                                pza = decimal.TryParse(piezas, out var piezaNum) ? piezaNum : 0;
+                                Functions.ObtainMandatoryPiece(out string isMandatory, itemCode);
+                                //validacion pieza
+                                if (pza <= 0 && isMandatory.Equals("Y"))
+                                    ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_OBS").Cells.Item(i).Specific).Value = "La pieza debe ser mayor que 0 para este item";
+                                if (pza > 0 && isMandatory.Equals("N"))
+                                    ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_OBS").Cells.Item(i).Specific).Value = "La pieza debe ser 0 para este item";
+                            }
+                            
+
+
                             // Validación suma
                             if (cant != (can1 + can2 + can3 + can4 + can5 + can6 + can7 + can8 + can9 + can10 + can11 + can12 + can13 + can14 + can15)) {
                                 var obsNueva = $"Suma de las cantidades ({can1 + can2 + can3 + can4 + can5 +can6 + can7 + can8 + can9 + can10 + can11 + can12 + can13 + can14 + can15}) ≠ Cant. Total ({cant})";
@@ -464,6 +486,7 @@ namespace nuanaddon_varimar.Form
                         double cantidad14 = ParseDouble(((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_CA14").Cells.Item(i).Specific).Value);
                         double cantidad15 = ParseDouble(((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_CA15").Cells.Item(i).Specific).Value);
                         double embalaje = ParseDouble(((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_EMB").Cells.Item(i).Specific).Value);
+                        double pieza = ParseDouble(((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_PZS").Cells.Item(i).Specific).Value);
 
                         string distNumber = ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_LOT").Cells.Item(i).Specific).Value?.Trim();
                         string ubicacion1 = ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_UBI1").Cells.Item(i).Specific).Value?.Trim();
@@ -488,6 +511,7 @@ namespace nuanaddon_varimar.Form
                         oStockTransfer.Lines.WarehouseCode = cmbDes.Selected.Value;
                         oStockTransfer.Lines.Quantity = cantidadTotal;
                         oStockTransfer.Lines.UserFields.Fields.Item("U_vp_Cajas").Value = embalaje;
+                        oStockTransfer.Lines.UserFields.Fields.Item("U_CPIEZAS").Value = pieza;
 
                         // ----- LOTE -----
                         oStockTransfer.Lines.BatchNumbers.BatchNumber = distNumber;

@@ -35,16 +35,16 @@ namespace nuanaddon_varimar.Utilities {
                 Program.SBOApplication.StatusBar.SetText($"Utilities.Functions.cs -> ObtainWarehouses: {ex.Message}", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error);
             }
         }
-        public static void ObtainItemCode(out string itemCode, string itemName) {
-            itemCode = "";
+        public static void ObtainMandatoryPiece(out string isMandatory, string itemCode) {
+            isMandatory = "N";
             try {
-                string varSQL = $"EXEC SBO_SP_IZ_GET_ITEMCODE '{itemName}' ";
+                string varSQL = $"EXEC SBO_SP_IZ_GET_MANDATORYPIECE '{itemCode}' ";
                 //string varSQL = $"CALL SBO_SP_IZ_GET_ITEMCODE ('{itemName}') ";
                 Recordset oRs = (Recordset)Program.SBOCompany.GetBusinessObject(BoObjectTypes.BoRecordset);
                 oRs.DoQuery(varSQL);
 
                 while (!oRs.EoF) {
-                    itemCode = Convert.ToString(oRs.Fields.Item("ItemCode").Value);
+                    isMandatory = Convert.ToString(oRs.Fields.Item("IsMandatory").Value);
                     oRs.MoveNext();
                 }
 
@@ -53,7 +53,7 @@ namespace nuanaddon_varimar.Utilities {
                 oRs = null;
             }
             catch (Exception ex) {
-                Program.SBOApplication.StatusBar.SetText($"Utilities.Functions.cs -> ObtainWarehouses: {ex.Message}", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error);
+                Program.SBOApplication.StatusBar.SetText($"Utilities.Functions.cs -> ObtainMandatoryPiece: {ex.Message}", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error);
             }
         }
         public static void ObtainQuantityDistNumber(out decimal quantity, string itemCode, string whsCode, string DistNumber) {
