@@ -423,6 +423,9 @@ namespace nuanaddon_varimar.Form
         private void btnTransfer_PressedAfter(object sboObject, SAPbouiCOM.SBOItemEventArg pVal) {
             UIAPIRawForm.Freeze(true);
             try {
+                if (!ValidateRowsOkForTransfer())
+                    return;
+
                 int nroAlmacenamiento = int.Parse(this.edtNro.Value);
                 Functions.ObtainDocNumTransfer(out int docNum, nroAlmacenamiento);
                 if (!docNum.Equals(0)) {
@@ -744,6 +747,31 @@ namespace nuanaddon_varimar.Form
             catch (Exception ex) {
                 Program.SBOApplication.StatusBar.SetText($"Form.FrmDocumento.cs -> ParseInt: {ex.Message}", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error);
                 return 0;
+            }
+        }
+        private bool ValidateRowsOkForTransfer() {
+            try {
+                if (mtxDetalle.RowCount == 0) {
+                    Program.SBOApplication.MessageBox("Debe cargar al menos una linea antes de crear la transferencia.");
+                    return false;
+                }
+
+                var filasConError = new List<string>();
+                for (int i = 1; i <= mtxDetalle.RowCount; i++) {
+                    var observacion = ((SAPbouiCOM.EditText)mtxDetalle.Columns.Item("Col_OBS").Cells.Item(i).Specific).Value?.Trim();
+                    if (!string.Equals(observacion, "OK", StringComparison.OrdinalIgnoreCase))
+                        filasConError.Add(i.ToString());
+                }
+
+                if (filasConError.Count == 0)
+                    return true;
+
+                Program.SBOApplication.MessageBox($"No se puede crear la transferencia. Revise las observaciones de las lineas: {string.Join(", ", filasConError)}.");
+                return false;
+            }
+            catch (Exception ex) {
+                Program.SBOApplication.StatusBar.SetText($"Form.FrmDocumento.cs -> ValidateRowsOkForTransfer: {ex.Message}", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error);
+                return false;
             }
         }
         private void AddBinToAllocationIfAny(SAPbobsCOM.StockTransfer oTrans, string whsTo, string binCode, double qty, int loteBaseIndex) {
