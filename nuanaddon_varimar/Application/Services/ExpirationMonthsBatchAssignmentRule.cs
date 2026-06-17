@@ -1,0 +1,64 @@
+using nuanaddon_varimar.DTO;
+using nuanaddon_varimar.Infrastructure.Sap;
+using nuanaddon_varimar.Shared.Constants;
+using nuanaddon_varimar.Shared.Parsing;
+using System;
+
+namespace nuanaddon_varimar.Application.Services {
+    public abstract class ExpirationMonthsBatchAssignmentRule : IBatchAssignmentRule {
+        private readonly int monthsToAdd;
+
+        protected ExpirationMonthsBatchAssignmentRule(int monthsToAdd) {
+            this.monthsToAdd = monthsToAdd;
+        }
+
+        public virtual decimal AssignLine(SAPbouiCOM.Form batchSelectionForm, SalesOrderLineBatchContext lineContext, DateTime deliveryDate) {
+            decimal missingQuantity = lineContext.MissingQuantity;
+            SAPbouiCOM.Matrix batchMatrix = (SAPbouiCOM.Matrix)batchSelectionForm.Items.Item(SapBatchSelectionUiIds.AvailableBatchesMatrix).Specific;
+
+            SortByExpirationDate(batchMatrix);
+
+            for (int row = 1; row <= batchMatrix.RowCount && missingQuantity > 0; row++) {
+                DateTime expirationDate;
+                if (!SapValueParser.TryParseDate(SapUiMatrixAccessor.GetEditTextValue(batchMatrix, SapBatchSelectionUiIds.BatchExpirationDateColumn, row), out expirationDate))
+                    continue;
+
+                if (DateTime.Compare(expirationDate.Date, deliveryDate.Date.AddMonths(monthsToAdd)) <= 0)
+                    continue;
+
+                missingQuantity = AssignAvailableBalance(batchSelectionForm, batchMatrix, row, missingQuantity);
+            }
+
+            return missingQuantity;
+        }
+
+        protected decimal AssignAvailableBalance(SAPbouiCOM.Form batchSelectionForm, SAPbouiCOM.Matrix batchMatrix, int row, decimal missingQuantity) {
+            decimal availableQuantity = SapUiMatrixAccessor.GetDecimalValue(batchMatrix, SapBatchSelectionUiIds.BatchAvailableQuantityColumn, row);
+            decimal assignedQuantity = SapUiMatrixAccessor.GetDecimalValue(batchMatrix, SapBatchSelectionUiIds.BatchAssignedQuantityColumn, row);
+            decimal balanceQuantity = availableQuantity - assignedQuantity;
+
+            if (balanceQuantity <= 0)
+                return missingQuantity;
+
+            decimal quantityToAssign = missingQuantity <= balanceQuantity ? missingQuantity : balanceQuantity;
+            SapUiMatrixAccessor.SetEditTextValue(batchMatrix, SapBatchSelectionUiIds.BatchQuantityToAssignColumn, row, quantityToAssign);
+            ClickAssign(batchSelectionForm);
+
+            return missingQuantity - quantityToAssign;
+        }
+
+        protected void SortByExpirationDate(SAPbouiCOM.Matrix batchMatrix) {
+            try {
+                batchMatrix.Columns.Item(SapBatchSelectionUiIds.BatchExpirationDateColumn).TitleObject.Click(SAPbouiCOM.BoCellClickType.ct_Double);
+            }
+            catch {
+                // If SAP UI does not allow sorting in a specific patch level, keep current visual order like B1UP would.
+            }
+        }
+
+        protected void ClickAssign(SAPbouiCOM.Form batchSelectionForm) {
+            batchSelectionForm.Items.Item(SapBatchSelectionUiIds.AssignButton).Click();
+            batchSelectionForm.Items.Item(SapCommonUiIds.OkButton).Click();
+        }
+    }
+}

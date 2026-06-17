@@ -1,0 +1,29 @@
+ClearAllStoreValues();
+
+@STORE30 = '';
+If($[$12.0.DATE]='1899-12-30') 
+Begin
+    MessageBox(Debe seleccionar una fecha de entrega);
+End
+Else
+Begin
+    Click($[$38.11.0]);
+    Transfer($[$12.0.DATE]|STORE1);
+    --Set(@STORE30|$[ORDR.CardCode]);
+    Transfer($[$4.0.0]|STORE30);
+    Activate(5896);
+    Activate();
+
+    If (@STORE30='C20109072177')
+    Begin
+        UF(UF-004);
+    End
+    else if(@STORE30='C20100070970')
+    Begin
+        UF(UF-005);
+    End
+    else if(@STORE30='C20508565934')
+    Begin
+        UF(UF-003);
+    End
+End
