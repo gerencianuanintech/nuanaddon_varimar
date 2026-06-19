@@ -32,10 +32,10 @@ namespace nuanaddon_varimar.LinkSAP {
             if (ItemExists(SapSalesOrderUiIds.AssignBatchButton))
                 return;
 
-            oItemReference = oForm.Items.Item(SapSalesOrderUiIds.DeliveryDateItem);
+            oItemReference = oForm.Items.Item(SapSalesOrderUiIds.DocumentDateItem);
             oItem = oForm.Items.Add(SapSalesOrderUiIds.AssignBatchButton, BoFormItemTypes.it_BUTTON);
-            oItem.Left = oItemReference.Left + oItemReference.Width + 12;
-            oItem.Top = oItemReference.Top - 2;
+            oItem.Left = oItemReference.Left;
+            oItem.Top = oItemReference.Top + oItemReference.Height + 6;
             oItem.Width = 95;
             oItem.Height = oItemReference.Height + 6;
             oItem.FromPane = oItemReference.FromPane;
