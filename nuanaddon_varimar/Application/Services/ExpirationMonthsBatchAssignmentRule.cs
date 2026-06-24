@@ -60,6 +60,7 @@ namespace nuanaddon_varimar.Application.Services {
             decimal quantityToAssign = missingQuantity <= balanceQuantity ? missingQuantity : balanceQuantity;
             SapUiMatrixAccessor.SetEditTextValue(batchMatrix, SapBatchSelectionUiIds.BatchQuantityToAssignColumn, row, quantityToAssign);
             ClickAssign(batchSelectionForm);
+            ClickOk(batchSelectionForm);
 
             bool stayOnSameRow = missingQuantity > balanceQuantity && assignedQuantity == 0;
             return new BatchUiAssignmentResult(missingQuantity - quantityToAssign, stayOnSameRow);
