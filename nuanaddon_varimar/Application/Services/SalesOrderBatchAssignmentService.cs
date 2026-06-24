@@ -13,6 +13,7 @@ namespace nuanaddon_varimar.Application.Services {
                     return BatchAssignmentResult.Ok();
 
                 SAPbouiCOM.Matrix lineMatrix = (SAPbouiCOM.Matrix)batchSelectionForm.Items.Item(SapBatchSelectionUiIds.LinesMatrix).Specific;
+                bool assignedAnyBatch = false;
 
                 for (int row = 1; row <= lineMatrix.RowCount; row++) {
                     lineMatrix.Columns.Item(SapBatchSelectionUiIds.LineItemCodeColumn).Cells.Item(row).Click();
@@ -27,10 +28,21 @@ namespace nuanaddon_varimar.Application.Services {
                     if (lineContext.MissingQuantity <= 0)
                         continue;
 
+                    decimal missingBeforeAssignment = lineContext.MissingQuantity;
                     decimal remaining = rule.AssignLine(batchSelectionForm, lineContext, request.DeliveryDate);
-                    if (remaining > 0)
+                    if (remaining < missingBeforeAssignment)
+                        assignedAnyBatch = true;
+
+                    if (remaining > 0) {
+                        if (assignedAnyBatch)
+                            batchSelectionForm.Items.Item(SapCommonUiIds.OkButton).Click();
+
                         return BatchAssignmentResult.Fail(SapMessages.NoAvailableBatchesForCustomerRulesDetail(lineContext.ItemCode, remaining));
+                    }
                 }
+
+                if (assignedAnyBatch)
+                    batchSelectionForm.Items.Item(SapCommonUiIds.OkButton).Click();
 
                 return BatchAssignmentResult.Ok();
             }

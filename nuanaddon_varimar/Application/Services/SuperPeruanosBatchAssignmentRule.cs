@@ -33,30 +33,27 @@ namespace nuanaddon_varimar.Application.Services {
                 bool assignedInThisPass = false;
 
                 for (; row <= lastUsefulRow; row++) {
-                    AvailableBatchRow batch;
-                    if (!TryReadValidAvailableBatchRow(batchMatrix, row, out batch))
+                    AvailableBatchRowData batchRow;
+                    if (!TryReadUsefulBatchRow(batchMatrix, row, out batchRow))
                         continue;
 
-                    if (lastDeliveredExpirationDate.HasValue && batch.ExpirationDate.Date < lastDeliveredExpirationDate.Value.Date)
+                    if (lastDeliveredExpirationDate.HasValue && batchRow.ExpirationDate.Date < lastDeliveredExpirationDate.Value.Date)
                         continue;
 
-                    int usefulLifeDays = (int)(batch.ExpirationDate.Date - batch.ProductionDate.Date).TotalDays;
+                    int usefulLifeDays = (int)(batchRow.ExpirationDate.Date - batchRow.ProductionDate.Date).TotalDays;
                     if (usefulLifeDays <= 0)
                         continue;
 
                     int firstThird = usefulLifeDays / 3;
-                    DateTime limitDate = batch.ExpirationDate.Date.AddDays(firstThird);
+                    DateTime limitDate = batchRow.ExpirationDate.Date.AddDays(firstThird);
 
                     if (deliveryDate.Date >= limitDate)
                         continue;
 
-                    decimal quantityToAssign = missingQuantity <= batch.BalanceQuantity ? missingQuantity : batch.BalanceQuantity;
-                    SapUiMatrixAccessor.SetEditTextValue(batchMatrix, SapBatchSelectionUiIds.BatchQuantityToAssignColumn, row, quantityToAssign);
-                    ClickAssign(batchSelectionForm);
-                    ClickOk(batchSelectionForm);
+                    BatchUiAssignmentResult assignmentResult = AssignAvailableBalance(batchSelectionForm, batchMatrix, batchRow, missingQuantity);
+                    missingQuantity = assignmentResult.MissingQuantity;
 
-                    missingQuantity -= quantityToAssign;
-                    if (batch.AssignedQuantity > 0)
+                    if (!assignmentResult.StayOnSameRow)
                         row++;
 
                     assignedInThisPass = true;
@@ -68,68 +65,6 @@ namespace nuanaddon_varimar.Application.Services {
             }
 
             return missingQuantity;
-        }
-
-        private int GetLastUsefulBatchRow(SAPbouiCOM.Matrix batchMatrix) {
-            int lastUsefulRow = 0;
-
-            if (batchMatrix == null)
-                return lastUsefulRow;
-
-            for (int row = 1; row <= batchMatrix.RowCount; row++) {
-                AvailableBatchRow batch;
-                if (TryReadValidAvailableBatchRow(batchMatrix, row, out batch))
-                    lastUsefulRow = row;
-            }
-
-            return lastUsefulRow;
-        }
-
-        private bool TryReadValidAvailableBatchRow(SAPbouiCOM.Matrix batchMatrix, int row, out AvailableBatchRow batch) {
-            batch = null;
-
-            if (!SapUiMatrixAccessor.IsValidRow(batchMatrix, row))
-                return false;
-
-            try {
-                DateTime productionDate;
-                DateTime expirationDate;
-                if (!SapValueParser.TryParseDate(SapUiMatrixAccessor.GetEditTextValue(batchMatrix, SapBatchSelectionUiIds.BatchProductionDateColumn, row), out productionDate))
-                    return false;
-                if (!SapValueParser.TryParseDate(SapUiMatrixAccessor.GetEditTextValue(batchMatrix, SapBatchSelectionUiIds.BatchExpirationDateColumn, row), out expirationDate))
-                    return false;
-
-                decimal availableQuantity = SapUiMatrixAccessor.GetDecimalValue(batchMatrix, SapBatchSelectionUiIds.BatchAvailableQuantityColumn, row);
-                decimal assignedQuantity = SapUiMatrixAccessor.GetDecimalValue(batchMatrix, SapBatchSelectionUiIds.BatchAssignedQuantityColumn, row);
-                decimal balanceQuantity = availableQuantity - assignedQuantity;
-
-                if (availableQuantity <= 0 || balanceQuantity <= 0)
-                    return false;
-
-                batch = new AvailableBatchRow {
-                    ProductionDate = productionDate,
-                    ExpirationDate = expirationDate,
-                    AvailableQuantity = availableQuantity,
-                    AssignedQuantity = assignedQuantity,
-                    BalanceQuantity = balanceQuantity
-                };
-
-                return true;
-            }
-            catch (Exception ex) {
-                if (ex.Message != null && ex.Message.IndexOf("invalid row number", StringComparison.OrdinalIgnoreCase) >= 0)
-                    return false;
-
-                throw;
-            }
-        }
-
-        private class AvailableBatchRow {
-            public DateTime ProductionDate { get; set; }
-            public DateTime ExpirationDate { get; set; }
-            public decimal AvailableQuantity { get; set; }
-            public decimal AssignedQuantity { get; set; }
-            public decimal BalanceQuantity { get; set; }
         }
     }
 }

@@ -1,5 +1,5 @@
 using System;
-using System.Globalization;
+using nuanaddon_varimar.Shared.Parsing;
 
 namespace nuanaddon_varimar.Infrastructure.Sap {
     public static class SalesOrderSapQueries {
@@ -39,10 +39,8 @@ namespace nuanaddon_varimar.Infrastructure.Sap {
                         expirationDate = (DateTime)value;
                     else {
                         DateTime parsedDate;
-                        if (DateTime.TryParse(Convert.ToString(value), CultureInfo.CurrentCulture, DateTimeStyles.None, out parsedDate) ||
-                            DateTime.TryParse(Convert.ToString(value), CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate)) {
+                        if (SapValueParser.TryParseDate(Convert.ToString(value), out parsedDate))
                             expirationDate = parsedDate;
-                        }
                     }
                 }
             });
