@@ -14,12 +14,16 @@ namespace nuanaddon_varimar.Application.Services {
 
         public virtual decimal AssignLine(SAPbouiCOM.Form batchSelectionForm, SalesOrderLineBatchContext lineContext, DateTime deliveryDate) {
             decimal missingQuantity = lineContext.MissingQuantity;
-            SAPbouiCOM.Matrix batchMatrix = (SAPbouiCOM.Matrix)batchSelectionForm.Items.Item(SapBatchSelectionUiIds.AvailableBatchesMatrix).Specific;
+            SAPbouiCOM.Matrix batchMatrix = GetAvailableBatchMatrix(batchSelectionForm);
 
             SortByExpirationDate(batchMatrix);
 
             int row = 1;
-            while (row <= batchMatrix.RowCount && missingQuantity > 0) {
+            while (missingQuantity > 0) {
+                batchMatrix = GetAvailableBatchMatrix(batchSelectionForm);
+                if (row > batchMatrix.RowCount)
+                    break;
+
                 DateTime expirationDate;
                 if (!SapValueParser.TryParseDate(SapUiMatrixAccessor.GetEditTextValue(batchMatrix, SapBatchSelectionUiIds.BatchExpirationDateColumn, row), out expirationDate)) {
                     row++;
@@ -33,8 +37,14 @@ namespace nuanaddon_varimar.Application.Services {
 
                 decimal previousMissingQuantity = missingQuantity;
                 missingQuantity = AssignAvailableBalance(batchSelectionForm, batchMatrix, row, missingQuantity);
-                if (missingQuantity == previousMissingQuantity)
+                if (missingQuantity == previousMissingQuantity) {
                     row++;
+                    continue;
+                }
+
+                batchMatrix = GetAvailableBatchMatrix(batchSelectionForm);
+                if (row > batchMatrix.RowCount)
+                    break;
             }
 
             return missingQuantity;
@@ -66,6 +76,10 @@ namespace nuanaddon_varimar.Application.Services {
 
         protected void ClickAssign(SAPbouiCOM.Form batchSelectionForm) {
             batchSelectionForm.Items.Item(SapBatchSelectionUiIds.AssignButton).Click();
+        }
+
+        protected SAPbouiCOM.Matrix GetAvailableBatchMatrix(SAPbouiCOM.Form batchSelectionForm) {
+            return (SAPbouiCOM.Matrix)batchSelectionForm.Items.Item(SapBatchSelectionUiIds.AvailableBatchesMatrix).Specific;
         }
 
         protected void ClickOk(SAPbouiCOM.Form batchSelectionForm) {

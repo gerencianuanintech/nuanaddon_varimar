@@ -11,7 +11,7 @@ namespace nuanaddon_varimar.Application.Services {
 
         public override decimal AssignLine(SAPbouiCOM.Form batchSelectionForm, SalesOrderLineBatchContext lineContext, DateTime deliveryDate) {
             decimal missingQuantity = lineContext.MissingQuantity;
-            SAPbouiCOM.Matrix batchMatrix = (SAPbouiCOM.Matrix)batchSelectionForm.Items.Item(SapBatchSelectionUiIds.AvailableBatchesMatrix).Specific;
+            SAPbouiCOM.Matrix batchMatrix = GetAvailableBatchMatrix(batchSelectionForm);
 
             SortByExpirationDate(batchMatrix);
 
@@ -21,7 +21,11 @@ namespace nuanaddon_varimar.Application.Services {
                 : null;
 
             int row = 1;
-            while (row <= batchMatrix.RowCount && missingQuantity > 0) {
+            while (missingQuantity > 0) {
+                batchMatrix = GetAvailableBatchMatrix(batchSelectionForm);
+                if (row > batchMatrix.RowCount)
+                    break;
+
                 DateTime productionDate;
                 DateTime expirationDate;
                 if (!SapValueParser.TryParseDate(SapUiMatrixAccessor.GetEditTextValue(batchMatrix, SapBatchSelectionUiIds.BatchProductionDateColumn, row), out productionDate)) {
@@ -49,8 +53,14 @@ namespace nuanaddon_varimar.Application.Services {
 
                 decimal previousMissingQuantity = missingQuantity;
                 missingQuantity = AssignAvailableBalance(batchSelectionForm, batchMatrix, row, missingQuantity);
-                if (missingQuantity == previousMissingQuantity)
+                if (missingQuantity == previousMissingQuantity) {
                     row++;
+                    continue;
+                }
+
+                batchMatrix = GetAvailableBatchMatrix(batchSelectionForm);
+                if (row > batchMatrix.RowCount)
+                    break;
             }
 
             return missingQuantity;
