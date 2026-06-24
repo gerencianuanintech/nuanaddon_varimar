@@ -5,6 +5,10 @@ namespace nuanaddon_varimar.Shared.Messages {
         public const string DeliveryDateRequired = "Debe seleccionar una fecha de entrega";
         public const string NoAvailableBatchesForCustomerRules = "No hay lotes disponibles que cumplan con las reglas del cliente";
 
+        public static string NoAvailableBatchesForCustomerRulesDetail(string itemCode, decimal pendingQuantity) {
+            return $"{NoAvailableBatchesForCustomerRules}. Articulo: {itemCode}. Cantidad pendiente: {pendingQuantity.ToString(System.Globalization.CultureInfo.InvariantCulture)}";
+        }
+
         public static void Error(string context, Exception exception) {
             Error($"{context}: {exception.Message}");
         }

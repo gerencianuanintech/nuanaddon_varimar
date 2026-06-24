@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 
 namespace nuanaddon_varimar.Infrastructure.Sap {
     public static class SalesOrderSapQueries {
@@ -32,10 +33,17 @@ namespace nuanaddon_varimar.Infrastructure.Sap {
                 $"WHERE T0.\"DocEntry\" = {docEntry} AND T1.\"ItemCode\" = '{safeItemCode}'";
 
             SapRecordsetExecutor.Execute(query, "Infrastructure.Sap.SalesOrderSapQueries.cs -> ObtainMaxExpirationDateFromDelivery", recordset => {
-                if (!recordset.EoF && recordset.Fields.Item("ExpDate").Value != null) {
+                if (!recordset.EoF && recordset.Fields.Item("ExpDate").Value != null && recordset.Fields.Item("ExpDate").Value != DBNull.Value) {
                     object value = recordset.Fields.Item("ExpDate").Value;
                     if (value is DateTime)
                         expirationDate = (DateTime)value;
+                    else {
+                        DateTime parsedDate;
+                        if (DateTime.TryParse(Convert.ToString(value), CultureInfo.CurrentCulture, DateTimeStyles.None, out parsedDate) ||
+                            DateTime.TryParse(Convert.ToString(value), CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedDate)) {
+                            expirationDate = parsedDate;
+                        }
+                    }
                 }
             });
 

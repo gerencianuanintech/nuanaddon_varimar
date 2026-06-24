@@ -43,6 +43,11 @@ namespace nuanaddon_varimar.Application.Services {
                 }
 
                 int usefulLifeDays = (int)(expirationDate.Date - productionDate.Date).TotalDays;
+                if (usefulLifeDays <= 0) {
+                    row++;
+                    continue;
+                }
+
                 int firstThird = usefulLifeDays / 3;
                 DateTime limitDate = expirationDate.Date.AddDays(firstThird);
 

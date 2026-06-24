@@ -29,7 +29,7 @@ namespace nuanaddon_varimar.Application.Services {
 
                     decimal remaining = rule.AssignLine(batchSelectionForm, lineContext, request.DeliveryDate);
                     if (remaining > 0)
-                        return BatchAssignmentResult.Fail(SapMessages.NoAvailableBatchesForCustomerRules);
+                        return BatchAssignmentResult.Fail(SapMessages.NoAvailableBatchesForCustomerRulesDetail(lineContext.ItemCode, remaining));
                 }
 
                 return BatchAssignmentResult.Ok();
