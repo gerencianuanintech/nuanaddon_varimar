@@ -20,25 +20,37 @@ namespace nuanaddon_varimar.Application.Services {
                 ? SalesOrderSapQueries.ObtainMaxExpirationDateFromDelivery(lastDeliveryDocEntry, lineContext.ItemCode)
                 : null;
 
-            for (int row = 1; row <= batchMatrix.RowCount && missingQuantity > 0; row++) {
+            int row = 1;
+            while (row <= batchMatrix.RowCount && missingQuantity > 0) {
                 DateTime productionDate;
                 DateTime expirationDate;
-                if (!SapValueParser.TryParseDate(SapUiMatrixAccessor.GetEditTextValue(batchMatrix, SapBatchSelectionUiIds.BatchProductionDateColumn, row), out productionDate))
+                if (!SapValueParser.TryParseDate(SapUiMatrixAccessor.GetEditTextValue(batchMatrix, SapBatchSelectionUiIds.BatchProductionDateColumn, row), out productionDate)) {
+                    row++;
                     continue;
-                if (!SapValueParser.TryParseDate(SapUiMatrixAccessor.GetEditTextValue(batchMatrix, SapBatchSelectionUiIds.BatchExpirationDateColumn, row), out expirationDate))
+                }
+                if (!SapValueParser.TryParseDate(SapUiMatrixAccessor.GetEditTextValue(batchMatrix, SapBatchSelectionUiIds.BatchExpirationDateColumn, row), out expirationDate)) {
+                    row++;
                     continue;
+                }
 
-                if (lastDeliveredExpirationDate.HasValue && expirationDate.Date < lastDeliveredExpirationDate.Value.Date)
+                if (lastDeliveredExpirationDate.HasValue && expirationDate.Date < lastDeliveredExpirationDate.Value.Date) {
+                    row++;
                     continue;
+                }
 
                 int usefulLifeDays = (int)(expirationDate.Date - productionDate.Date).TotalDays;
                 int firstThird = usefulLifeDays / 3;
                 DateTime limitDate = expirationDate.Date.AddDays(firstThird);
 
-                if (deliveryDate.Date >= limitDate)
+                if (deliveryDate.Date >= limitDate) {
+                    row++;
                     continue;
+                }
 
+                decimal previousMissingQuantity = missingQuantity;
                 missingQuantity = AssignAvailableBalance(batchSelectionForm, batchMatrix, row, missingQuantity);
+                if (missingQuantity == previousMissingQuantity)
+                    row++;
             }
 
             return missingQuantity;

@@ -18,15 +18,23 @@ namespace nuanaddon_varimar.Application.Services {
 
             SortByExpirationDate(batchMatrix);
 
-            for (int row = 1; row <= batchMatrix.RowCount && missingQuantity > 0; row++) {
+            int row = 1;
+            while (row <= batchMatrix.RowCount && missingQuantity > 0) {
                 DateTime expirationDate;
-                if (!SapValueParser.TryParseDate(SapUiMatrixAccessor.GetEditTextValue(batchMatrix, SapBatchSelectionUiIds.BatchExpirationDateColumn, row), out expirationDate))
+                if (!SapValueParser.TryParseDate(SapUiMatrixAccessor.GetEditTextValue(batchMatrix, SapBatchSelectionUiIds.BatchExpirationDateColumn, row), out expirationDate)) {
+                    row++;
                     continue;
+                }
 
-                if (DateTime.Compare(expirationDate.Date, deliveryDate.Date.AddMonths(monthsToAdd)) <= 0)
+                if (DateTime.Compare(expirationDate.Date, deliveryDate.Date.AddMonths(monthsToAdd)) <= 0) {
+                    row++;
                     continue;
+                }
 
+                decimal previousMissingQuantity = missingQuantity;
                 missingQuantity = AssignAvailableBalance(batchSelectionForm, batchMatrix, row, missingQuantity);
+                if (missingQuantity == previousMissingQuantity)
+                    row++;
             }
 
             return missingQuantity;
