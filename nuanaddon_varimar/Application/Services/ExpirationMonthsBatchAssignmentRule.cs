@@ -58,6 +58,9 @@ namespace nuanaddon_varimar.Application.Services {
 
         protected void ClickAssign(SAPbouiCOM.Form batchSelectionForm) {
             batchSelectionForm.Items.Item(SapBatchSelectionUiIds.AssignButton).Click();
+        }
+
+        protected void ClickOk(SAPbouiCOM.Form batchSelectionForm) {
             batchSelectionForm.Items.Item(SapCommonUiIds.OkButton).Click();
         }
     }

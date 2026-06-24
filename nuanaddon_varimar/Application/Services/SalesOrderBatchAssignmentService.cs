@@ -32,6 +32,7 @@ namespace nuanaddon_varimar.Application.Services {
                         return BatchAssignmentResult.Fail(SapMessages.NoAvailableBatchesForCustomerRules);
                 }
 
+                batchSelectionForm.Items.Item(SapCommonUiIds.OkButton).Click();
                 return BatchAssignmentResult.Ok();
             }
             catch (Exception ex) {
