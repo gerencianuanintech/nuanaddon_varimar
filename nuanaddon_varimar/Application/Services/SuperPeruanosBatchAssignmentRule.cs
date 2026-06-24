@@ -51,12 +51,11 @@ namespace nuanaddon_varimar.Application.Services {
                     continue;
                 }
 
-                decimal previousMissingQuantity = missingQuantity;
-                missingQuantity = AssignAvailableBalance(batchSelectionForm, batchMatrix, row, missingQuantity);
-                if (missingQuantity == previousMissingQuantity) {
+                BatchUiAssignmentResult assignmentResult = AssignAvailableBalance(batchSelectionForm, batchMatrix, row, missingQuantity);
+                missingQuantity = assignmentResult.MissingQuantity;
+
+                if (!assignmentResult.StayOnSameRow)
                     row++;
-                    continue;
-                }
 
                 batchMatrix = GetAvailableBatchMatrix(batchSelectionForm);
                 if (row > batchMatrix.RowCount)

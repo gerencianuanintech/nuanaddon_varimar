@@ -35,12 +35,11 @@ namespace nuanaddon_varimar.Application.Services {
                     continue;
                 }
 
-                decimal previousMissingQuantity = missingQuantity;
-                missingQuantity = AssignAvailableBalance(batchSelectionForm, batchMatrix, row, missingQuantity);
-                if (missingQuantity == previousMissingQuantity) {
+                BatchUiAssignmentResult assignmentResult = AssignAvailableBalance(batchSelectionForm, batchMatrix, row, missingQuantity);
+                missingQuantity = assignmentResult.MissingQuantity;
+
+                if (!assignmentResult.StayOnSameRow)
                     row++;
-                    continue;
-                }
 
                 batchMatrix = GetAvailableBatchMatrix(batchSelectionForm);
                 if (row > batchMatrix.RowCount)
@@ -50,19 +49,20 @@ namespace nuanaddon_varimar.Application.Services {
             return missingQuantity;
         }
 
-        protected decimal AssignAvailableBalance(SAPbouiCOM.Form batchSelectionForm, SAPbouiCOM.Matrix batchMatrix, int row, decimal missingQuantity) {
+        protected BatchUiAssignmentResult AssignAvailableBalance(SAPbouiCOM.Form batchSelectionForm, SAPbouiCOM.Matrix batchMatrix, int row, decimal missingQuantity) {
             decimal availableQuantity = SapUiMatrixAccessor.GetDecimalValue(batchMatrix, SapBatchSelectionUiIds.BatchAvailableQuantityColumn, row);
             decimal assignedQuantity = SapUiMatrixAccessor.GetDecimalValue(batchMatrix, SapBatchSelectionUiIds.BatchAssignedQuantityColumn, row);
             decimal balanceQuantity = availableQuantity - assignedQuantity;
 
             if (balanceQuantity <= 0)
-                return missingQuantity;
+                return new BatchUiAssignmentResult(missingQuantity, false);
 
             decimal quantityToAssign = missingQuantity <= balanceQuantity ? missingQuantity : balanceQuantity;
             SapUiMatrixAccessor.SetEditTextValue(batchMatrix, SapBatchSelectionUiIds.BatchQuantityToAssignColumn, row, quantityToAssign);
             ClickAssign(batchSelectionForm);
 
-            return missingQuantity - quantityToAssign;
+            bool stayOnSameRow = missingQuantity > balanceQuantity && assignedQuantity == 0;
+            return new BatchUiAssignmentResult(missingQuantity - quantityToAssign, stayOnSameRow);
         }
 
         protected void SortByExpirationDate(SAPbouiCOM.Matrix batchMatrix) {
@@ -84,6 +84,16 @@ namespace nuanaddon_varimar.Application.Services {
 
         protected void ClickOk(SAPbouiCOM.Form batchSelectionForm) {
             batchSelectionForm.Items.Item(SapCommonUiIds.OkButton).Click();
+        }
+
+        protected class BatchUiAssignmentResult {
+            public BatchUiAssignmentResult(decimal missingQuantity, bool stayOnSameRow) {
+                MissingQuantity = missingQuantity;
+                StayOnSameRow = stayOnSameRow;
+            }
+
+            public decimal MissingQuantity { get; private set; }
+            public bool StayOnSameRow { get; private set; }
         }
     }
 }
