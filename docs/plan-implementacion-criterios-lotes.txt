@@ -1,0 +1,164 @@
+PLAN DE IMPLEMENTACION - CRITERIOS DE SELECCION DE LOTES
+
+Etapa 1: Definir parametros
+
+Crear o confirmar dos parametros en la tabla de parametros de Inzol:
+
+1. DiasBufferLotes
+   - Valor inicial: 7.
+   - Uso: sumar dias a la fecha de entrega antes de aplicar las reglas de supermercado.
+
+2. CriterioSeleccionLotes
+   - Valores permitidos:
+     - MENOR_CANTIDAD
+     - MAYOR_CANTIDAD
+     - MENOR_CANTIDAD_LOTE_UNICO
+
+El orden alfabetico no sera un parametro independiente. Sera un criterio de desempate obligatorio en todas las opciones anteriores.
+
+
+Etapa 2: Leer configuracion
+
+Crear una clase de configuracion para cargar los parametros antes de iniciar la asignacion de lotes.
+
+Campos requeridos:
+
+- BufferDays
+- SelectionCriterion
+
+Valores por defecto si el parametro no existe, viene vacio o tiene un valor invalido:
+
+- BufferDays = 7
+- SelectionCriterion = MENOR_CANTIDAD
+
+
+Etapa 3: Calcular fecha base
+
+Al iniciar la asignacion, calcular:
+
+fechaBase = fechaEntrega + DiasBufferLotes
+
+Luego cada supermercado debe usar esa fecha base:
+
+- Cencosud: fechaBase + 4 meses.
+- Tottus: fechaBase + 5 meses.
+- Super Peruanos: usar fechaBase dentro de su regla actual de vida util.
+
+
+Etapa 4: Construir lista interna de lotes
+
+Antes de escribir cantidades en SAP, leer la matriz de lotes disponibles y construir una lista en memoria.
+
+Cada lote debe contener:
+
+- FilaSap
+- NumeroLote
+- FechaProduccion
+- FechaVencimiento
+- CantidadDisponible
+- CantidadAsignada
+- CantidadRemanente
+
+Calculo principal:
+
+CantidadRemanente = CantidadDisponible - CantidadAsignada
+
+Solo se deben considerar lotes con CantidadRemanente mayor a cero.
+
+
+Etapa 5: Filtrar por regla del supermercado
+
+Antes de ordenar por cantidad, eliminar los lotes que no cumplen la regla comercial del cliente.
+
+Reglas:
+
+- Cencosud:
+  Solo pasan lotes con vencimiento mayor a fechaBase + 4 meses.
+
+- Tottus:
+  Solo pasan lotes con vencimiento mayor a fechaBase + 5 meses.
+
+- Super Peruanos:
+  Solo pasan lotes que cumplan su regla especial actual, usando fechaBase.
+
+
+Etapa 6: Aplicar criterio de seleccion
+
+Con la lista ya filtrada por supermercado, ordenar segun el parametro CriterioSeleccionLotes.
+
+1. MENOR_CANTIDAD
+
+   Orden:
+   - CantidadRemanente ascendente.
+   - NumeroLote ascendente como desempate alfabetico.
+
+2. MAYOR_CANTIDAD
+
+   Orden:
+   - CantidadRemanente descendente.
+   - NumeroLote ascendente como desempate alfabetico.
+
+3. MENOR_CANTIDAD_LOTE_UNICO
+
+   Flujo:
+   - Filtrar solo lotes con CantidadRemanente mayor o igual a la cantidad requerida.
+   - Ordenar por CantidadRemanente ascendente.
+   - Desempatar por NumeroLote ascendente.
+   - Tomar solo el primer lote.
+
+   Si no existe un lote suficiente, no se debe dividir la asignacion entre varios lotes.
+   Debe mostrarse el mensaje:
+
+   No se pudo cumplir el criterio de lote unico para el articulo {ItemCode}. No existe un lote disponible con cantidad suficiente para cubrir la cantidad requerida.
+
+
+Etapa 7: Asignar en SAP
+
+Despues de ordenar en codigo, escribir las cantidades en la matriz SAP usando la fila original del lote.
+
+Para MENOR_CANTIDAD y MAYOR_CANTIDAD:
+
+- Se pueden consumir varios lotes hasta completar la cantidad faltante.
+- En cada lote se asigna:
+
+  cantidadAsignar = minimo(cantidadFaltante, CantidadRemanente)
+
+Para MENOR_CANTIDAD_LOTE_UNICO:
+
+- Se asigna todo desde un unico lote.
+- Si no hay lote unico suficiente, no se asigna nada para esa linea y se muestra el mensaje correspondiente.
+
+
+Etapa 8: Validar columna de lote
+
+Confirmar el ID de la columna del numero de lote en la ventana de seleccion de lotes SAP.
+
+Esta columna es necesaria para aplicar el desempate alfabetico.
+
+El ordenamiento no debe depender del orden visual de SAP. El orden debe calcularse en codigo y luego escribirse en la fila SAP correspondiente.
+
+
+Etapa 9: Pruebas funcionales
+
+Probar minimo los siguientes escenarios:
+
+- Buffer de 7 dias con Cencosud.
+- Buffer de 7 dias con Tottus.
+- Buffer de 7 dias con Super Peruanos.
+- Cambio de buffer a otro valor.
+- MENOR_CANTIDAD con empate por cantidad y desempate alfabetico.
+- MAYOR_CANTIDAD con empate por cantidad y desempate alfabetico.
+- MENOR_CANTIDAD_LOTE_UNICO con lote suficiente.
+- MENOR_CANTIDAD_LOTE_UNICO sin lote suficiente.
+- Validar que el orden alfabetico solo se aplique cuando hay empate de cantidad.
+- Validar que la asignacion se escriba en la fila correcta de SAP.
+
+
+Etapa 10: Publicacion
+
+Pasos finales:
+
+- Compilar el addon.
+- Probar en SAP Business One.
+- Hacer commit en la rama actual.
+- Subir los cambios a GitHub.
