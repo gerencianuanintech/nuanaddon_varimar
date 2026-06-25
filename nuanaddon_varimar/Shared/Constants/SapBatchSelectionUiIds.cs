@@ -13,5 +13,11 @@ namespace nuanaddon_varimar.Shared.Constants {
         public const string BatchAvailableQuantityColumn = "234000058";
         public const string BatchQuantityToAssignColumn = "234000059";
         public const string BatchAssignedQuantityColumn = "234000061";
+
+        public const string BatchNumberColumn = "0";
+
+        public static bool IsBatchNumberColumnConfirmed() {
+            return BatchNumberColumn != "CONFIRMAR_ID";
+        }
     }
 }

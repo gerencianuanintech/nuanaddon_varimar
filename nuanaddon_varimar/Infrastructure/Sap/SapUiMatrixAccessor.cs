@@ -46,6 +46,24 @@ namespace nuanaddon_varimar.Infrastructure.Sap {
             return SapValueParser.ParseDecimal(GetEditTextValue(matrix, columnId, row));
         }
 
+        public static bool TrySetEditTextValue(SAPbouiCOM.Matrix matrix, string columnId, int row, decimal value) {
+            if (!IsValidRow(matrix, row))
+                return false;
+
+            try {
+                object specific = matrix.Columns.Item(columnId).Cells.Item(row).Specific;
+                SAPbouiCOM.EditText editText = specific as SAPbouiCOM.EditText;
+                if (editText == null)
+                    return false;
+
+                editText.Value = value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                return true;
+            }
+            catch {
+                return false;
+            }
+        }
+
         public static void SetEditTextValue(SAPbouiCOM.Matrix matrix, string columnId, int row, decimal value) {
             ((SAPbouiCOM.EditText)matrix.Columns.Item(columnId).Cells.Item(row).Specific).Value = value.ToString(System.Globalization.CultureInfo.InvariantCulture);
         }
