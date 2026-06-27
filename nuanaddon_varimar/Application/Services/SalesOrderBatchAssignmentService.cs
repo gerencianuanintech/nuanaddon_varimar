@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace nuanaddon_varimar.Application.Services {
     public class SalesOrderBatchAssignmentService {
@@ -29,35 +30,45 @@ namespace nuanaddon_varimar.Application.Services {
                 if (!BatchAssignmentCustomerService.IsSupportedCustomer(request.CardCode))
                     return BatchAssignmentResult.Ok();
 
-                LotSelectionConfigDto config = lotConfigurationService.GetConfig();
                 SAPbouiCOM.Matrix lineMatrix = (SAPbouiCOM.Matrix)batchSelectionForm.Items.Item(SapBatchSelectionUiIds.LinesMatrix).Specific;
                 bool assignedAnyBatch = false;
 
-                for (int row = 1; row <= lineMatrix.RowCount; row++) {
-                    lineMatrix.Columns.Item(SapBatchSelectionUiIds.LineItemCodeColumn).Cells.Item(row).Click();
+                using (BatchAssignmentProgress progress = BatchAssignmentProgress.Create("Asignando lotes...", CalculateProgressSteps(lineMatrix))) {
+                    progress.Step("Leyendo configuracion de lotes...");
+                    LotSelectionConfigDto config = lotConfigurationService.GetConfig();
 
-                    SalesOrderLineBatchContext lineContext = new SalesOrderLineBatchContext {
-                        Row = row,
-                        ItemCode = SapUiMatrixAccessor.GetEditTextValue(lineMatrix, SapBatchSelectionUiIds.LineItemCodeColumn, row),
-                        SelectedQuantity = SapUiMatrixAccessor.GetDecimalValue(lineMatrix, SapBatchSelectionUiIds.LineSelectedQuantityColumn, row),
-                        RequiredQuantity = SapUiMatrixAccessor.GetDecimalValue(lineMatrix, SapBatchSelectionUiIds.LineRequiredQuantityColumn, row)
-                    };
+                    for (int row = 1; row <= lineMatrix.RowCount; row++) {
+                        progress.Step("Leyendo linea de articulo " + row.ToString(CultureInfo.InvariantCulture) + "...");
+                        lineMatrix.Columns.Item(SapBatchSelectionUiIds.LineItemCodeColumn).Cells.Item(row).Click();
 
-                    if (lineContext.MissingQuantity <= 0)
-                        continue;
+                        SalesOrderLineBatchContext lineContext = new SalesOrderLineBatchContext {
+                            Row = row,
+                            ItemCode = SapUiMatrixAccessor.GetEditTextValue(lineMatrix, SapBatchSelectionUiIds.LineItemCodeColumn, row),
+                            SelectedQuantity = SapUiMatrixAccessor.GetDecimalValue(lineMatrix, SapBatchSelectionUiIds.LineSelectedQuantityColumn, row),
+                            RequiredQuantity = SapUiMatrixAccessor.GetDecimalValue(lineMatrix, SapBatchSelectionUiIds.LineRequiredQuantityColumn, row)
+                        };
 
-                    decimal remaining = AssignLineWithConfig(batchSelectionForm, request, lineContext, config, ref assignedAnyBatch);
+                        if (lineContext.MissingQuantity <= 0)
+                            continue;
 
-                    if (remaining > 0) {
-                        if (assignedAnyBatch)
-                            batchSelectionForm.Items.Item(SapCommonUiIds.OkButton).Click();
+                        progress.Step("Procesando lotes del articulo " + lineContext.ItemCode + "...");
+                        decimal remaining = AssignLineWithConfig(batchSelectionForm, request, lineContext, config, ref assignedAnyBatch, progress);
 
-                        return BatchAssignmentResult.Fail(SapMessages.NoAvailableBatchesForCustomerRulesDetail(lineContext.ItemCode, remaining));
+                        if (remaining > 0) {
+                            if (assignedAnyBatch) {
+                                progress.Step("Confirmando asignaciones parciales...");
+                                batchSelectionForm.Items.Item(SapCommonUiIds.OkButton).Click();
+                            }
+
+                            return BatchAssignmentResult.Fail(SapMessages.NoAvailableBatchesForCustomerRulesDetail(lineContext.ItemCode, remaining));
+                        }
+                    }
+
+                    if (assignedAnyBatch) {
+                        progress.Step("Confirmando asignacion de lotes...");
+                        batchSelectionForm.Items.Item(SapCommonUiIds.OkButton).Click();
                     }
                 }
-
-                if (assignedAnyBatch)
-                    batchSelectionForm.Items.Item(SapCommonUiIds.OkButton).Click();
 
                 return BatchAssignmentResult.Ok();
             }
@@ -72,14 +83,17 @@ namespace nuanaddon_varimar.Application.Services {
             SalesOrderBatchAssignmentRequest request,
             SalesOrderLineBatchContext lineContext,
             LotSelectionConfigDto config,
-            ref bool assignedAnyBatch) {
+            ref bool assignedAnyBatch,
+            BatchAssignmentProgress progress) {
             decimal missingQuantity = lineContext.MissingQuantity;
 
+            progress.Step("Leyendo lotes disponibles...");
             SAPbouiCOM.Matrix batchMatrix = GetAvailableBatchMatrix(batchSelectionForm);
             IList<AvailableBatchDto> availableBatches = BuildAvailableBatches(batchMatrix, lineContext.ItemCode);
             if (availableBatches.Count == 0)
                 return missingQuantity;
 
+            progress.Step("Calculando plan de asignacion...");
             IList<BatchAssignmentDto> assignments = lotAssignmentPlannerService.PlanAssignments(
                 request.CardCode,
                 lineContext.ItemCode,
@@ -88,7 +102,8 @@ namespace nuanaddon_varimar.Application.Services {
                 availableBatches,
                 config);
 
-            if (TryAssignPlannedBatchesTogether(batchSelectionForm, lineContext, assignments, missingQuantity)) {
+            progress.Step("Preparando asignacion en SAP...");
+            if (TryAssignPlannedBatchesTogether(batchSelectionForm, lineContext, assignments, missingQuantity, progress)) {
                 assignedAnyBatch = assignments.Count > 0;
                 return 0m;
             }
@@ -108,6 +123,7 @@ namespace nuanaddon_varimar.Application.Services {
                 if (!IsValidAssignment(batchMatrix, currentBatch, assignment, missingQuantity))
                     continue;
 
+                progress.Step("Asignando lote " + assignment.BatchNumber + "...");
                 if (!SapUiMatrixAccessor.TrySetEditTextValue(batchMatrix, SapBatchSelectionUiIds.BatchQuantityToAssignColumn, assignment.SapRow, assignment.QuantityToAssign)) {
                     SapMessages.Error(LotAssignmentMessages.InvalidSapRowDetail(assignment.SapRow));
                     continue;
@@ -125,7 +141,8 @@ namespace nuanaddon_varimar.Application.Services {
             SAPbouiCOM.Form batchSelectionForm,
             SalesOrderLineBatchContext lineContext,
             IList<BatchAssignmentDto> assignments,
-            decimal missingQuantity) {
+            decimal missingQuantity,
+            BatchAssignmentProgress progress) {
             if (assignments == null || assignments.Count == 0)
                 return false;
 
@@ -150,6 +167,7 @@ namespace nuanaddon_varimar.Application.Services {
             if (resolvedAssignments.Count == 0 || plannedQuantity <= 0 || plannedQuantity != missingQuantity)
                 return false;
 
+            progress.Step("Escribiendo cantidades en lotes seleccionados...");
             foreach (ResolvedBatchAssignment resolvedAssignment in resolvedAssignments) {
                 if (!SapUiMatrixAccessor.TrySetEditTextValue(
                     batchMatrix,
@@ -162,12 +180,14 @@ namespace nuanaddon_varimar.Application.Services {
                 }
             }
 
+            progress.Step("Seleccionando lotes en SAP...");
             if (!TrySelectPlannedRows(batchMatrix, resolvedAssignments)) {
                 ClearPlannedQuantities(batchMatrix, resolvedAssignments);
                 return false;
             }
 
             try {
+                progress.Step("Pasando lotes seleccionados...");
                 batchSelectionForm.Items.Item(SapBatchSelectionUiIds.AssignButton).Click();
                 return true;
             }
@@ -350,6 +370,11 @@ namespace nuanaddon_varimar.Application.Services {
             return (SAPbouiCOM.Matrix)batchSelectionForm.Items.Item(SapBatchSelectionUiIds.AvailableBatchesMatrix).Specific;
         }
 
+        private int CalculateProgressSteps(SAPbouiCOM.Matrix lineMatrix) {
+            int rowCount = lineMatrix == null ? 1 : lineMatrix.RowCount;
+            return Math.Max(1, 4 + (rowCount * 8));
+        }
+
         private class ResolvedBatchAssignment {
             public ResolvedBatchAssignment(BatchAssignmentDto assignment, AvailableBatchDto batch) {
                 Assignment = assignment;
@@ -358,6 +383,66 @@ namespace nuanaddon_varimar.Application.Services {
 
             public BatchAssignmentDto Assignment { get; private set; }
             public AvailableBatchDto Batch { get; private set; }
+        }
+
+        private class BatchAssignmentProgress : IDisposable {
+            private readonly SAPbouiCOM.ProgressBar progressBar;
+            private readonly int totalSteps;
+            private int currentStep;
+
+            private BatchAssignmentProgress(SAPbouiCOM.ProgressBar progressBar, int totalSteps) {
+                this.progressBar = progressBar;
+                this.totalSteps = totalSteps <= 0 ? 1 : totalSteps;
+            }
+
+            public static BatchAssignmentProgress Create(string text, int totalSteps) {
+                SAPbouiCOM.ProgressBar progressBar = null;
+
+                try {
+                    if (Program.SBOApplication != null)
+                        progressBar = Program.SBOApplication.StatusBar.CreateProgressBar(text, totalSteps <= 0 ? 1 : totalSteps, false);
+                }
+                catch {
+                    progressBar = null;
+                }
+
+                return new BatchAssignmentProgress(progressBar, totalSteps);
+            }
+
+            public void Step(string text) {
+                if (progressBar == null)
+                    return;
+
+                try {
+                    progressBar.Text = text;
+
+                    if (currentStep < totalSteps) {
+                        currentStep++;
+                        progressBar.Value = currentStep;
+                    }
+                }
+                catch {
+                    // Progress feedback must never interrupt batch assignment.
+                }
+            }
+
+            public void Dispose() {
+                if (progressBar == null)
+                    return;
+
+                try {
+                    progressBar.Stop();
+                }
+                catch {
+                }
+
+                try {
+                    if (Marshal.IsComObject(progressBar))
+                        Marshal.ReleaseComObject(progressBar);
+                }
+                catch {
+                }
+            }
         }
     }
 }
