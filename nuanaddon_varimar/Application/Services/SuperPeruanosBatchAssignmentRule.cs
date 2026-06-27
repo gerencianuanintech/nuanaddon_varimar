@@ -15,7 +15,7 @@ namespace nuanaddon_varimar.Application.Services {
 
             SortByExpirationDate(batchMatrix);
 
-            int lastDeliveryDocEntry = SalesOrderSapQueries.ObtainLastDeliveryDocEntryByItem(lineContext.ItemCode);
+            int lastDeliveryDocEntry = SalesOrderSapQueries.ObtainLastDeliveryDocEntryByItem(lineContext.ItemCode, CustomerCodes.SuperPeruanos);
             DateTime? lastDeliveredExpirationDate = lastDeliveryDocEntry > 0
                 ? SalesOrderSapQueries.ObtainMaxExpirationDateFromDelivery(lastDeliveryDocEntry, lineContext.ItemCode)
                 : null;

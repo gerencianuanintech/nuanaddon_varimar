@@ -42,17 +42,17 @@ namespace nuanaddon_varimar.Application.Services {
                 case CustomerCodes.Tottus:
                     return batch.ExpirationDate.Value.Date > baseDate.Date.AddMonths(5);
                 case CustomerCodes.SuperPeruanos:
-                    return BatchPassesSuperPeruanosRule(batch, baseDate);
+                    return BatchPassesSuperPeruanosRule(cardCode, batch, baseDate);
                 default:
                     return false;
             }
         }
 
-        private static bool BatchPassesSuperPeruanosRule(AvailableBatchDto batch, DateTime baseDate) {
+        private static bool BatchPassesSuperPeruanosRule(string cardCode, AvailableBatchDto batch, DateTime baseDate) {
             if (!batch.ProductionDate.HasValue || !batch.ExpirationDate.HasValue)
                 return false;
 
-            int lastDeliveryDocEntry = SalesOrderSapQueries.ObtainLastDeliveryDocEntryByItem(batch.ItemCode);
+            int lastDeliveryDocEntry = SalesOrderSapQueries.ObtainLastDeliveryDocEntryByItem(batch.ItemCode, cardCode);
             DateTime? lastDeliveredExpirationDate = lastDeliveryDocEntry > 0
                 ? SalesOrderSapQueries.ObtainMaxExpirationDateFromDelivery(lastDeliveryDocEntry, batch.ItemCode)
                 : null;

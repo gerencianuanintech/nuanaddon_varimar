@@ -3,14 +3,15 @@ using nuanaddon_varimar.Shared.Parsing;
 
 namespace nuanaddon_varimar.Infrastructure.Sap {
     public static class SalesOrderSapQueries {
-        public static int ObtainLastDeliveryDocEntryByItem(string itemCode) {
+        public static int ObtainLastDeliveryDocEntryByItem(string itemCode, string cardCode) {
             int docEntry = 0;
             string safeItemCode = SapRecordsetExecutor.EscapeSqlValue(itemCode);
+            string safeCardCode = SapRecordsetExecutor.EscapeSqlValue(cardCode);
             string query =
                 "SELECT TOP 1 T1.\"DocEntry\" " +
                 "FROM \"ODLN\" T0 " +
                 "INNER JOIN \"DLN1\" T1 ON T0.\"DocEntry\" = T1.\"DocEntry\" " +
-                $"WHERE T1.\"ItemCode\" = '{safeItemCode}' AND T0.\"CANCELED\" = 'N' " +
+                $"WHERE T1.\"ItemCode\" = '{safeItemCode}' AND T0.\"CardCode\" = '{safeCardCode}' AND T0.\"CANCELED\" = 'N' " +
                 "ORDER BY T0.\"DocDate\" DESC, T0.\"DocEntry\" DESC";
 
             SapRecordsetExecutor.Execute(query, "Infrastructure.Sap.SalesOrderSapQueries.cs -> ObtainLastDeliveryDocEntryByItem", recordset => {
