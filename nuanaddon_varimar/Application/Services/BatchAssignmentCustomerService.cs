@@ -65,7 +65,7 @@ namespace nuanaddon_varimar.Application.Services {
                 return false;
 
             int firstThird = usefulLifeDays / 3;
-            DateTime limitDate = batch.ExpirationDate.Value.Date.AddDays(firstThird);
+            DateTime limitDate = batch.ProductionDate.Value.Date.AddDays(firstThird);
 
             return baseDate.Date < limitDate;
         }
