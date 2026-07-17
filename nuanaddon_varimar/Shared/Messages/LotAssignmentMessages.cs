@@ -10,9 +10,15 @@ namespace nuanaddon_varimar.Shared.Messages {
         public const string CannotAssignZeroOrNegativeQuantity = "No se puede asignar cantidad cero o negativa.";
         public const string InvalidSapRow = "No se puede escribir en una fila SAP invalida.";
         public const string BatchNumberColumnNotConfirmed = "No se confirmo el ID real de la columna numero de lote.";
+        public const string CannotValidateEligibleBatchQuantity = "No se pudo validar el estado y las cantidades de los lotes en ubicaciones permitidas. No se realizara la asignacion.";
+        public const string CannotDetermineWarehouseForItem = "No se pudo determinar el almacen de la linea del articulo.";
 
         public static string InvalidSapRowDetail(int sapRow) {
             return InvalidSapRow + " SapRow: " + sapRow.ToString(CultureInfo.InvariantCulture);
+        }
+
+        public static string CannotDetermineWarehouseForItemDetail(string itemCode) {
+            return CannotDetermineWarehouseForItem + " Articulo: " + (itemCode ?? string.Empty).Trim();
         }
     }
 }

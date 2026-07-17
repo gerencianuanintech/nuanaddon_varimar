@@ -36,6 +36,7 @@ namespace nuanaddon_varimar.Application.Services {
                 using (BatchAssignmentProgress progress = BatchAssignmentProgress.Create("Asignando lotes...", CalculateProgressSteps(lineMatrix))) {
                     progress.Step("Leyendo configuracion de lotes...");
                     LotSelectionConfigDto config = lotConfigurationService.GetConfig();
+                    IDictionary<string, int> itemOccurrences = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
                     for (int row = 1; row <= lineMatrix.RowCount; row++) {
                         progress.Step("Leyendo linea de articulo " + row.ToString(CultureInfo.InvariantCulture) + "...");
@@ -47,6 +48,10 @@ namespace nuanaddon_varimar.Application.Services {
                             SelectedQuantity = SapUiMatrixAccessor.GetDecimalValue(lineMatrix, SapBatchSelectionUiIds.LineSelectedQuantityColumn, row),
                             RequiredQuantity = SapUiMatrixAccessor.GetDecimalValue(lineMatrix, SapBatchSelectionUiIds.LineRequiredQuantityColumn, row)
                         };
+
+                        lineContext.WarehouseCode = ResolveWarehouseCode(request, lineContext.ItemCode, itemOccurrences);
+                        if (string.IsNullOrWhiteSpace(lineContext.WarehouseCode))
+                            return BatchAssignmentResult.Fail(LotAssignmentMessages.CannotDetermineWarehouseForItemDetail(lineContext.ItemCode));
 
                         if (lineContext.MissingQuantity <= 0)
                             continue;
@@ -89,7 +94,10 @@ namespace nuanaddon_varimar.Application.Services {
 
             progress.Step("Leyendo lotes disponibles...");
             SAPbouiCOM.Matrix batchMatrix = GetAvailableBatchMatrix(batchSelectionForm);
-            IList<AvailableBatchDto> availableBatches = BuildAvailableBatches(batchMatrix, lineContext.ItemCode);
+            IList<AvailableBatchDto> availableBatches = BuildAvailableBatches(
+                batchMatrix,
+                lineContext.ItemCode,
+                lineContext.WarehouseCode);
             if (availableBatches.Count == 0)
                 return missingQuantity;
 
@@ -266,19 +274,57 @@ namespace nuanaddon_varimar.Application.Services {
                 StringComparison.OrdinalIgnoreCase);
         }
 
-        private IList<AvailableBatchDto> BuildAvailableBatches(SAPbouiCOM.Matrix batchMatrix, string itemCode) {
+        private IList<AvailableBatchDto> BuildAvailableBatches(
+            SAPbouiCOM.Matrix batchMatrix,
+            string itemCode,
+            string warehouseCode) {
             IList<AvailableBatchDto> batches = new List<AvailableBatchDto>();
 
             if (batchMatrix == null)
                 return batches;
 
+            IDictionary<string, decimal> eligibleBatchQuantities;
+            if (!SalesOrderSapQueries.TryObtainEligibleBatchQuantities(itemCode, warehouseCode, out eligibleBatchQuantities))
+                throw new InvalidOperationException(LotAssignmentMessages.CannotValidateEligibleBatchQuantity);
+
             for (int row = 1; row <= batchMatrix.RowCount; row++) {
                 AvailableBatchDto batch;
-                if (TryReadAvailableBatch(batchMatrix, row, itemCode, out batch))
+                if (!TryReadAvailableBatch(batchMatrix, row, itemCode, out batch))
+                    continue;
+
+                decimal eligibleQuantity;
+                if (!eligibleBatchQuantities.TryGetValue(batch.BatchNumber, out eligibleQuantity))
+                    continue;
+
+                batch.AvailableQuantity = Math.Min(batch.AvailableQuantity, eligibleQuantity);
+                if (batch.RemainingQuantity > 0)
                     batches.Add(batch);
             }
 
             return batches;
+        }
+
+        private string ResolveWarehouseCode(
+            SalesOrderBatchAssignmentRequest request,
+            string itemCode,
+            IDictionary<string, int> itemOccurrences) {
+            if (request == null ||
+                request.WarehouseCodesByItem == null ||
+                string.IsNullOrWhiteSpace(itemCode))
+                return string.Empty;
+
+            IList<string> warehouseCodes;
+            if (!request.WarehouseCodesByItem.TryGetValue(itemCode.Trim(), out warehouseCodes) ||
+                warehouseCodes == null ||
+                warehouseCodes.Count == 0)
+                return string.Empty;
+
+            int occurrence;
+            if (!itemOccurrences.TryGetValue(itemCode, out occurrence))
+                occurrence = 0;
+
+            itemOccurrences[itemCode] = occurrence + 1;
+            return occurrence < warehouseCodes.Count ? warehouseCodes[occurrence] : string.Empty;
         }
 
         private bool TryReadAvailableBatch(SAPbouiCOM.Matrix batchMatrix, int row, string itemCode, out AvailableBatchDto batch) {

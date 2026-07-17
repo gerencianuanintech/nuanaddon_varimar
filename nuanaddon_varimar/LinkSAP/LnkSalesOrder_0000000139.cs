@@ -1,10 +1,12 @@
 using nuanaddon_varimar.Application.Services;
 using nuanaddon_varimar.DTO;
+using nuanaddon_varimar.Infrastructure.Sap;
 using nuanaddon_varimar.Shared.Constants;
 using nuanaddon_varimar.Shared.Messages;
 using nuanaddon_varimar.Shared.Parsing;
 using SAPbouiCOM;
 using System;
+using System.Collections.Generic;
 using System.Threading;
 
 namespace nuanaddon_varimar.LinkSAP {
@@ -60,6 +62,7 @@ namespace nuanaddon_varimar.LinkSAP {
             if (!BatchAssignmentCustomerService.IsSupportedCustomer(cardCode))
                 return;
 
+            IDictionary<string, IList<string>> warehouseCodesByItem = ReadWarehouseCodesByItem();
             ClickFirstSalesOrderLineBatchColumn();
             Program.SBOApplication.ActivateMenuItem("5896");
 
@@ -74,7 +77,8 @@ namespace nuanaddon_varimar.LinkSAP {
                 new SalesOrderBatchAssignmentRequest {
                     FormUid = oForm.UniqueID,
                     CardCode = cardCode,
-                    DeliveryDate = deliveryDate
+                    DeliveryDate = deliveryDate,
+                    WarehouseCodesByItem = warehouseCodesByItem
                 });
 
             if (!result.Success && !string.IsNullOrWhiteSpace(result.Message))
@@ -99,6 +103,35 @@ namespace nuanaddon_varimar.LinkSAP {
             oMatrix = (Matrix)oForm.Items.Item(SapSalesOrderUiIds.LinesMatrix).Specific;
             if (oMatrix.RowCount > 0)
                 oMatrix.Columns.Item(SapSalesOrderUiIds.BatchSelectionColumn).Cells.Item(1).Click();
+        }
+
+        private IDictionary<string, IList<string>> ReadWarehouseCodesByItem() {
+            IDictionary<string, IList<string>> warehouseCodesByItem =
+                new Dictionary<string, IList<string>>(StringComparer.OrdinalIgnoreCase);
+            Matrix lineMatrix = (Matrix)oForm.Items.Item(SapSalesOrderUiIds.LinesMatrix).Specific;
+
+            for (int row = 1; row <= lineMatrix.RowCount; row++) {
+                string itemCode;
+                string warehouseCode;
+                if (!SapUiMatrixAccessor.TryGetEditTextValue(lineMatrix, SapSalesOrderUiIds.ItemCodeColumn, row, out itemCode) ||
+                    !SapUiMatrixAccessor.TryGetEditTextValue(lineMatrix, SapSalesOrderUiIds.WarehouseCodeColumn, row, out warehouseCode) ||
+                    string.IsNullOrWhiteSpace(itemCode) ||
+                    string.IsNullOrWhiteSpace(warehouseCode))
+                    continue;
+
+                itemCode = itemCode.Trim();
+                warehouseCode = warehouseCode.Trim();
+
+                IList<string> warehouseCodes;
+                if (!warehouseCodesByItem.TryGetValue(itemCode, out warehouseCodes)) {
+                    warehouseCodes = new List<string>();
+                    warehouseCodesByItem[itemCode] = warehouseCodes;
+                }
+
+                warehouseCodes.Add(warehouseCode);
+            }
+
+            return warehouseCodesByItem;
         }
 
         private SAPbouiCOM.Form WaitForBatchSelectionForm() {
