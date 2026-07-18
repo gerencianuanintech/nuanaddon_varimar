@@ -1,54 +1,45 @@
-﻿using OfficeOpenXml;
-using SAPbouiCOM.Framework;
+using OfficeOpenXml;
+using nuanaddon_varimar.LinkSAP;
+using nuanaddon_varimar.Shared.Messages;
 using System;
-using System.Collections.Generic;
+using B1Application = SAPbouiCOM.Framework.Application;
 
 namespace nuanaddon_varimar {
     class Program {
-        //Declaración de variables
         public static SAPbouiCOM.Application SBOApplication;
         public static SAPbobsCOM.Company SBOCompany;
 
-        /// <summary>
-        /// The main entry point for the application.
-        /// </summary>
         [STAThread]
         static void Main(string[] args) {
             try {
                 ExcelPackage.License.SetNonCommercialOrganization("Nuanintech");
 
-                Application oApp = null;
+                B1Application oApp;
                 if (args.Length < 1)
-                    oApp = new Application();
-                else {
-                    //If you want to use an add-on identifier for the development license, you can specify an add-on identifier string as the second parameter.
-                    //oApp = new Application(args[0], "XXXXX");
-                    oApp = new Application(args[0]);
-                }
+                    oApp = new B1Application();
+                else
+                    oApp = new B1Application(args[0]);
 
-                //Inicialización de variables
-                SBOApplication = Application.SBO_Application;
+                SBOApplication = B1Application.SBO_Application;
                 SBOCompany = (SAPbobsCOM.Company)SBOApplication.Company.GetDICompany();
                 SBOCompany.GetContextCookie();
 
-                Menu MyMenu = new Menu();
-                MyMenu.AddMenuItems();
-                oApp.RegisterMenuEventHandler(MyMenu.SBO_Application_MenuEvent);
-                Application.SBO_Application.AppEvent += new SAPbouiCOM._IApplicationEvents_AppEventEventHandler(SBO_Application_AppEvent);
+                Menu myMenu = new Menu();
+                myMenu.AddMenuItems();
+                oApp.RegisterMenuEventHandler(myMenu.SBO_Application_MenuEvent);
+                B1Application.SBO_Application.AppEvent += new SAPbouiCOM._IApplicationEvents_AppEventEventHandler(SBO_Application_AppEvent);
+                B1Application.SBO_Application.ItemEvent += new SAPbouiCOM._IApplicationEvents_ItemEventEventHandler(SBO_Application_ItemEvent);
+                B1Application.SBO_Application.FormDataEvent += new SAPbouiCOM._IApplicationEvents_FormDataEventEventHandler(SBO_Application_FormDataEvent);
                 oApp.Run();
             }
-            catch (Exception ex)
-            {
+            catch (Exception ex) {
                 System.Windows.Forms.MessageBox.Show(ex.Message);
             }
         }
 
-        static void SBO_Application_AppEvent(SAPbouiCOM.BoAppEventTypes EventType)
-        {
-            switch (EventType)
-            {
+        static void SBO_Application_AppEvent(SAPbouiCOM.BoAppEventTypes eventType) {
+            switch (eventType) {
                 case SAPbouiCOM.BoAppEventTypes.aet_ShutDown:
-                    //Exit Add-On
                     System.Windows.Forms.Application.Exit();
                     break;
                 case SAPbouiCOM.BoAppEventTypes.aet_CompanyChanged:
@@ -61,6 +52,38 @@ namespace nuanaddon_varimar {
                     break;
                 default:
                     break;
+            }
+        }
+
+        static void SBO_Application_ItemEvent(string formUid, ref SAPbouiCOM.ItemEvent pVal, out bool bubbleEvent) {
+            bubbleEvent = true;
+
+            try {
+                if ("0".Equals(formUid) ||
+                    pVal.EventType == SAPbouiCOM.BoEventTypes.et_FORM_UNLOAD ||
+                    pVal.EventType == SAPbouiCOM.BoEventTypes.et_FORM_ACTIVATE ||
+                    pVal.EventType == SAPbouiCOM.BoEventTypes.et_FORM_DEACTIVATE)
+                    return;
+
+                LnkSAP handler;
+                if (LinkSapHandlerRegistry.TryCreateForItemEvent(pVal.FormTypeEx, out handler))
+                    handler.HandleItemEvent(formUid, ref pVal, ref bubbleEvent);
+            }
+            catch (Exception ex) {
+                SapMessages.Error("Program.cs -> SBO_Application_ItemEvent", ex);
+            }
+        }
+
+        static void SBO_Application_FormDataEvent(ref SAPbouiCOM.BusinessObjectInfo businessObjectInfo, out bool bubbleEvent) {
+            bubbleEvent = true;
+
+            try {
+                LnkSAP handler;
+                if (LinkSapHandlerRegistry.TryCreateForFormDataEvent(businessObjectInfo.FormTypeEx, out handler))
+                    handler.HandleFormDataEvent(ref businessObjectInfo, ref bubbleEvent);
+            }
+            catch (Exception ex) {
+                SapMessages.Error("Program.cs -> SBO_Application_FormDataEvent", ex);
             }
         }
     }

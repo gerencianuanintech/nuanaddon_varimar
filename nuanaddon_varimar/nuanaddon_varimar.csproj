@@ -95,16 +95,53 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
-    <Reference Include="SAPBusinessOneSDK" />
+    <Reference Include="SAPBusinessOneSDK">
+      <HintPath>bin\x64\Debug\SAPBusinessOneSDK.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Application\Services\BatchAssignmentCustomerService.cs" />
+    <Compile Include="Application\Services\CencosudBatchAssignmentRule.cs" />
+    <Compile Include="Application\Services\ExpirationMonthsBatchAssignmentRule.cs" />
+    <Compile Include="Application\Services\IBatchAssignmentRule.cs" />
+    <Compile Include="Application\Services\ILotAssignmentPlannerService.cs" />
+    <Compile Include="Application\Services\ILotConfigurationService.cs" />
+    <Compile Include="Application\Services\ILotSelectionService.cs" />
+    <Compile Include="Application\Services\LotAssignmentPlannerService.cs" />
+    <Compile Include="Application\Services\LotConfigurationService.cs" />
+    <Compile Include="Application\Services\LotSelectionService.cs" />
+    <Compile Include="Application\Services\SalesOrderBatchAssignmentService.cs" />
+    <Compile Include="Application\Services\SuperPeruanosBatchAssignmentRule.cs" />
+    <Compile Include="Application\Services\TottusBatchAssignmentRule.cs" />
+    <Compile Include="DTO\AvailableBatchDto.cs" />
+    <Compile Include="DTO\BatchAssignmentDto.cs" />
+    <Compile Include="DTO\BatchAssignmentResult.cs" />
+    <Compile Include="DTO\LotSelectionConfigDto.cs" />
+    <Compile Include="DTO\SalesOrderBatchAssignmentRequest.cs" />
+    <Compile Include="DTO\SalesOrderLineBatchContext.cs" />
     <Compile Include="DTO\WarehousesDTO.cs" />
     <Compile Include="Form\FrmDocumento.b1f.cs">
       <DependentUpon>FrmDocumento.b1f</DependentUpon>
     </Compile>
+    <Compile Include="Infrastructure\Sap\SalesOrderSapQueries.cs" />
+    <Compile Include="Infrastructure\Sap\SapRecordsetExecutor.cs" />
+    <Compile Include="Infrastructure\Sap\SapUiMatrixAccessor.cs" />
+    <Compile Include="LinkSAP\LinkSapHandlerRegistry.cs" />
+    <Compile Include="LinkSAP\LnkBatchNumberSelection_0000000042.cs" />
+    <Compile Include="LinkSAP\LnkSalesOrder_0000000139.cs" />
+    <Compile Include="LinkSAP\LnkSAP.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Menu.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Shared\Constants\CustomerCodes.cs" />
+    <Compile Include="Shared\Constants\LotSelectionCriteria.cs" />
+    <Compile Include="Shared\Constants\SapBatchSelectionUiIds.cs" />
+    <Compile Include="Shared\Constants\SapCommonUiIds.cs" />
+    <Compile Include="Shared\Constants\SapFormTypeEx.cs" />
+    <Compile Include="Shared\Constants\SapSalesOrderUiIds.cs" />
+    <Compile Include="Shared\Messages\LotAssignmentMessages.cs" />
+    <Compile Include="Shared\Messages\SapMessages.cs" />
+    <Compile Include="Shared\Parsing\SapValueParser.cs" />
     <Compile Include="Utilities\Functions.cs" />
     <None Include="Form\FrmDocumento.b1f">
       <FormCategory>UserForm</FormCategory>

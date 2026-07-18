@@ -15,6 +15,7 @@ namespace nuanaddon_varimar.Utilities {
                 WarehousesDTO warehousesDTO;
 
                 string varSQL = $"EXEC SBO_SP_IZ_GET_WAREHOUSES";
+                //string varSQL = $"CALL SBO_SP_IZ_GET_WAREHOUSES()";
                 Recordset oRs = (Recordset)Program.SBOCompany.GetBusinessObject(BoObjectTypes.BoRecordset);
                 oRs.DoQuery(varSQL);
 
@@ -34,15 +35,16 @@ namespace nuanaddon_varimar.Utilities {
                 Program.SBOApplication.StatusBar.SetText($"Utilities.Functions.cs -> ObtainWarehouses: {ex.Message}", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error);
             }
         }
-        public static void ObtainItemCode(out string itemCode, string itemName) {
-            itemCode = "";
+        public static void ObtainMandatoryPiece(out string isMandatory, string itemCode) {
+            isMandatory = "N";
             try {
-                string varSQL = $"EXEC SBO_SP_IZ_GET_ITEMCODE '{itemName}' ";
+                string varSQL = $"EXEC SBO_SP_IZ_GET_MANDATORYPIECE '{itemCode}' ";
+                //string varSQL = $"CALL SBO_SP_IZ_GET_ITEMCODE ('{itemName}') ";
                 Recordset oRs = (Recordset)Program.SBOCompany.GetBusinessObject(BoObjectTypes.BoRecordset);
                 oRs.DoQuery(varSQL);
 
                 while (!oRs.EoF) {
-                    itemCode = Convert.ToString(oRs.Fields.Item("ItemCode").Value);
+                    isMandatory = Convert.ToString(oRs.Fields.Item("IsMandatory").Value);
                     oRs.MoveNext();
                 }
 
@@ -51,14 +53,14 @@ namespace nuanaddon_varimar.Utilities {
                 oRs = null;
             }
             catch (Exception ex) {
-                Program.SBOApplication.StatusBar.SetText($"Utilities.Functions.cs -> ObtainWarehouses: {ex.Message}", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error);
+                Program.SBOApplication.StatusBar.SetText($"Utilities.Functions.cs -> ObtainMandatoryPiece: {ex.Message}", SAPbouiCOM.BoMessageTime.bmt_Short, SAPbouiCOM.BoStatusBarMessageType.smt_Error);
             }
         }
         public static void ObtainQuantityDistNumber(out decimal quantity, string itemCode, string whsCode, string DistNumber) {
             quantity = 0;
-            try
-            {
+            try {
                 string varSQL = $"EXEC SBO_SP_IZ_GET_QUANTITYDISTNUMBER '{itemCode}','{whsCode}','{DistNumber}' ";
+                //string varSQL = $"CALL SBO_SP_IZ_GET_QUANTITYDISTNUMBER ('{itemCode}','{whsCode}','{DistNumber}') ";
                 Recordset oRs = (Recordset)Program.SBOCompany.GetBusinessObject(BoObjectTypes.BoRecordset);
                 oRs.DoQuery(varSQL);
 
@@ -79,6 +81,7 @@ namespace nuanaddon_varimar.Utilities {
             binAbsEntry = 0;
             try {
                 string varSQL = $"EXEC SBO_SP_IZ_GET_BINABSENTRY '{whsCode}','{binCode}' ";
+                //string varSQL = $"CALL SBO_SP_IZ_GET_BINABSENTRY ('{whsCode}','{binCode}') ";
                 Recordset oRs = (Recordset)Program.SBOCompany.GetBusinessObject(BoObjectTypes.BoRecordset);
                 oRs.DoQuery(varSQL);
 
@@ -99,6 +102,7 @@ namespace nuanaddon_varimar.Utilities {
             sequence = 0;
             try {
                 string varSQL = $"EXEC SBO_SP_IZ_GET_SEQUENCE";
+                //string varSQL = $"CALL SBO_SP_IZ_GET_SEQUENCE()";
                 Recordset oRs = (Recordset)Program.SBOCompany.GetBusinessObject(BoObjectTypes.BoRecordset);
                 oRs.DoQuery(varSQL);
 
@@ -119,6 +123,7 @@ namespace nuanaddon_varimar.Utilities {
             docNum = 0;
             try {
                 string varSQL = $"EXEC SBO_SP_IZ_GET_DOCNUMTRANSFER {nroAlmacenamiento} ";
+                //string varSQL = $"CALL SBO_SP_IZ_GET_DOCNUMTRANSFER ({nroAlmacenamiento}) ";
                 Recordset oRs = (Recordset)Program.SBOCompany.GetBusinessObject(BoObjectTypes.BoRecordset);
                 oRs.DoQuery(varSQL);
 

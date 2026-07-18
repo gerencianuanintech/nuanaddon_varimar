@@ -1,48 +1,37 @@
-﻿using SAPbouiCOM.Framework;
 using System;
-using System.Collections.Generic;
-using System.Text;
+using B1Application = SAPbouiCOM.Framework.Application;
 
-namespace nuanaddon_varimar
-{
-    class Menu
-    {
-        public void AddMenuItems()
-        {
+namespace nuanaddon_varimar {
+    class Menu {
+        public void AddMenuItems() {
             SAPbouiCOM.Menus oMenus = null;
             SAPbouiCOM.MenuItem oMenuItem = null;
 
-            oMenus = Application.SBO_Application.Menus;
+            oMenus = B1Application.SBO_Application.Menus;
 
             SAPbouiCOM.MenuCreationParams oCreationPackage = null;
-            oCreationPackage = ((SAPbouiCOM.MenuCreationParams)(Application.SBO_Application.CreateObject(SAPbouiCOM.BoCreatableObjectType.cot_MenuCreationParams)));
-            oMenuItem = Application.SBO_Application.Menus.Item("43520"); // moudles'
+            oCreationPackage = ((SAPbouiCOM.MenuCreationParams)(B1Application.SBO_Application.CreateObject(SAPbouiCOM.BoCreatableObjectType.cot_MenuCreationParams)));
+            oMenuItem = B1Application.SBO_Application.Menus.Item("43520");
 
             oCreationPackage.Type = SAPbouiCOM.BoMenuType.mt_POPUP;
             oCreationPackage.UniqueID = "nuanaddon_varimar";
-            oCreationPackage.String = "nuanaddon_varimar";
+            oCreationPackage.String = "Addon Hoja Almacenamiento";
             oCreationPackage.Enabled = true;
             oCreationPackage.Position = -1;
 
             oMenus = oMenuItem.SubMenus;
 
             try {
-                //  If the manu already exists this code will fail
                 if (!oMenus.Exists("nuanaddon_varimar"))
                     oMenus.AddEx(oCreationPackage);
             }
-            catch (Exception e)
-            {
-
+            catch (Exception) {
             }
 
-            try
-            {
-                // Get the menu collection of the newly added pop-up item
-                oMenuItem = Application.SBO_Application.Menus.Item("nuanaddon_varimar");
+            try {
+                oMenuItem = B1Application.SBO_Application.Menus.Item("nuanaddon_varimar");
                 oMenus = oMenuItem.SubMenus;
 
-                // Create s sub menu
                 oCreationPackage.Type = SAPbouiCOM.BoMenuType.mt_STRING;
                 oCreationPackage.UniqueID = "nuanaddon_varimar.Form.FrmDocumento";
                 oCreationPackage.String = "Almacenamiento";
@@ -50,29 +39,23 @@ namespace nuanaddon_varimar
                 if (!oMenus.Exists("nuanaddon_varimar.Form.FrmDocumento"))
                     oMenus.AddEx(oCreationPackage);
             }
-            catch (Exception er)
-            { //  Menu already exists
-                Application.SBO_Application.SetStatusBarMessage("Menu Already Exists", SAPbouiCOM.BoMessageTime.bmt_Short, true);
+            catch (Exception) {
+                B1Application.SBO_Application.SetStatusBarMessage("Menu Already Exists", SAPbouiCOM.BoMessageTime.bmt_Short, true);
             }
         }
 
-        public void SBO_Application_MenuEvent(ref SAPbouiCOM.MenuEvent pVal, out bool BubbleEvent)
-        {
-            BubbleEvent = true;
+        public void SBO_Application_MenuEvent(ref SAPbouiCOM.MenuEvent pVal, out bool bubbleEvent) {
+            bubbleEvent = true;
 
-            try
-            {
-                if (pVal.BeforeAction && pVal.MenuUID == "nuanaddon_varimar.Form.FrmDocumento")
-                {
+            try {
+                if (pVal.BeforeAction && pVal.MenuUID == "nuanaddon_varimar.Form.FrmDocumento") {
                     Form.FrmDocumento activeForm = new Form.FrmDocumento();
                     activeForm.Show();
                 }
             }
-            catch (Exception ex)
-            {
-                Application.SBO_Application.MessageBox(ex.ToString(), 1, "Ok", "", "");
+            catch (Exception ex) {
+                B1Application.SBO_Application.MessageBox(ex.ToString(), 1, "Ok", "", "");
             }
         }
-
     }
 }

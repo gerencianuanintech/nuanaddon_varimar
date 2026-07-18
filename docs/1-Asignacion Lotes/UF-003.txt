@@ -1,0 +1,67 @@
+@STORE19 = ($[$3.0.NUMBER.FIRST]);
+@STORE20 = ($[$3.0.NUMBER.LAST]);
+
+WHILE (@STORE19 <= @STORE20)
+BEGIN
+
+    Click($[$3.1.0.@STORE19]);   
+    --Tabla lineas de documentos
+    @STORE2 = SQL(SELECT CAST(REPLACE($[$3.18.NUMBER.SELECTED],',','') AS NUMERIC(18,6))); --Cantidad seleccionada
+    @STORE3 = SQL(SELECT CAST(REPLACE($[$3.17.NUMBER.SELECTED],',','') AS NUMERIC(18,6))); --Cantidad
+    @STORE4 = ($[$3.1.0.SELECTED]); --Numero de articulo 
+    @STORE5 = (@STORE3 - @STORE2); --Cantidad faltante
+        
+    IF (@STORE5 > 0)
+    BEGIN
+        DoubleClickColumnHeader($[$4.15.DATE]);  --Ordenamos por la fecha de vencimiento
+        
+        @STORE6 = ($[$4.1.NUMBER.FIRST]); -- Primera línea de lote disponible
+        @STORE7 = ($[$4.1.NUMBER.LAST]);  -- Ultima línea de lote disponible  
+        
+        WHILE(@STORE6 <= $[$4.1.NUMBER.LAST])
+        BEGIN 
+            @STORE8 = ($[$4.15.DATE.@STORE6]);
+            @STORE9 = SQL(Select Datediff(day,Dateadd(month,5,Cast('@STORE1' as date)),Cast('@STORE8' as date)));
+            @STORE10 = SQL(SELECT CAST(REPLACE($[$4.234000058.0.@STORE6],',','') AS NUMERIC(18,6)));
+            @STORE11 = SQL(SELECT CAST(REPLACE($[$4.234000061.0.@STORE6],',','') AS NUMERIC(18,6)));
+            @STORE12 = SQL(Select cast(@STORE10 as decimal(18,4)) - cast(@STORE11 as decimal(18,4)));
+            @STORE13 = 0;
+            
+            IF (@STORE9 > 0)
+            BEGIN
+                If (@STORE12 > 0) 
+                Begin
+                    If (@STORE5 <= @STORE12)
+                    Begin
+                        Set($[$4.234000059.0.@STORE6]|@STORE5);
+                        Click($[$48.0.0]);
+                        @STORE6 = @STORE7 + 1;
+                        @STORE5 = 0;
+                    End
+                    Else
+                    Begin
+                        Set($[$4.234000059.0.@STORE6]|@STORE12);
+                        Click($[$48.0.0]);
+                        @STORE5 = @STORE5 - @STORE12
+                        If (@STORE11 = 0)
+                        Begin
+                            @STORE13 = 1;
+                        End
+                    End
+                    Click($[$1.0.0]);
+                End;
+            End;
+            If (@STORE13 = 0)
+            BEGIN
+                @STORE6 = @STORE6 + 1;
+            END
+        END;
+
+        IF(@STORE5 > 0)
+        BEGIN
+            MessageBox(No hay lotes disponibles que cumplan con las reglas del cliente);
+        END
+    END;
+    @STORE19 = @STORE19 + 1;
+END
+ClearAllStoreValues();
